@@ -1,8 +1,6 @@
 MIT License
 
-(本文本具备基本法理效力，允许使用者在保留版权声明与许可声明的前提下，自由使用、修改和分发。)
-
-Copyright (c) 2026 ArtNh
+Copyright (c) 2026 MiMo One Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

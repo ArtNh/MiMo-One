@@ -1,44 +1,61 @@
 # MiMo One
 
-> 本项目为 ArtNh 的个人数字化 Portfolio 与桌面端应用程序资产库。基于 Electron、Vite 与 React 构建，致力于探索优雅且现代的桌面交互设计体验。
+![License](https://img.shields.io/badge/License-MIT-blue.svg) ![Version](https://img.shields.io/badge/version-0.0.0-green.svg)
+
+> 小米 MiMo Code 的全功能可视化桌面端，致力于将硬核的纯终端多智能体调度，转化为直观、可控的现代桌面工作流。
 
 ---
 
-## 项目概览
+## 项目简介
 
-本项目探索在 Web 视图与原生系统环境间寻求完美的融合。采用理性的空间设计理念与现代 Web 技术，为用户提供极其纯粹且专注的交互平台。
-
-- 核心框架：Electron、Vite、React
-- 开发语言：TypeScript、JavaScript、CSS
-- 视觉风格：极简主义与理性空间美感
+MiMo One 是一款专为高效计算与协作而生的现代桌面端应用。它在 Web 视图与原生系统环境间寻求完美的融合，以极客的理性和专业的美学设计，为多智能体调度系统提供纯粹且专注的可视化平台。
 
 ---
 
-## 启动指南
+## 核心特性
 
-> 确保本地环境中已配置完整的 Node.js 运行环境。
+本项目拥有以下三大核心 UI 模块，旨在重构工作流范式：
 
-### 依赖安装
+> **1. 记忆与进化控制台**
+> 
+> 位于界面左侧，可视化展示 Project Memory 与 Archival Memory 的演进过程。引入带有呼吸动效的 The Dream State（睡眠进化）设计，呈现数据与记忆的生命力。
 
-推荐使用 `npm` 进行依赖安装：
+> **2. 多模式执行台**
+> 
+> 占据核心中央区域，构建带卡片折叠逻辑的对话流。特设「Max Mode（全托管模式）」超级输入舱，支持一键开启边缘泛蓝光反馈，提供沉浸式的极客级托管体验。
 
-> npm install
-
-### 开发环境
-
-启动包含了 Vite 本地服务与 Electron 主进程的调试环境：
-
-> npm run dev:desktop
-
-系统将首先挂载前端页面服务，检测到端口可用后自动拉起主进程并渲染窗口。
+> **3. 智能体监控抽屉**
+> 
+> 位于界面右侧，实时监控 Subagent 任务树的运行状态，并提供文件变更的 Diff 热预览，确保一切底层操作处于绝对透明与可控之中。
 
 ---
 
-## 许可证与贡献指引
+## 技术架构
 
-本项目为开源或半开源性质，遵循标准的开源许可协议与社区准则。相关细节敬请查阅：
-- 贡献准则请参阅 `Contributing.md`
-- 社区规范请参阅 `Code_of_conduct.md`
-- 授权协议请参阅 `LICENSE`
+追求极速构建与原生体验的现代技术栈：
+
+- **核心框架**：Electron + React 18 + Vite
+- **开发语言**：TypeScript
+- **视觉系统**：Tailwind CSS (纯净 Light Mode 浅色主题)
 
 ---
+
+## 快速启动
+
+> 确保本地环境中已配置最新的 Node.js 运行环境。
+
+克隆仓库后，请按以下步骤启动本地开发环境：
+
+```bash
+# 1. 安装项目依赖
+npm install
+
+# 2. 启动桌面端调试环境（自动拉起 Vite 服务与 Electron 主进程）
+npm run dev:desktop
+```
+
+---
+
+## 许可与参与
+
+本项目遵循 MIT 协议。如果您有兴趣参与构建，请务必仔细阅读 `CONTRIBUTING.md` 中的开发红线规则，并遵守 `CODE_OF_CONDUCT.md` 所倡导的极客交流准则。
