@@ -3,13 +3,22 @@ import logo from './favicon.png';
 
 export default function App() {
   const [maxMode, setMaxMode] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   return (
     <div className="flex h-screen w-screen text-sm text-gray-800">
       {/* 左侧 A 区 */}
       <aside className="w-64 bg-slate-50 border-r border-slate-200 flex flex-col p-4">
         <div className="flex items-center space-x-2 mb-4">
-          <img src={logo} alt="Logo" className="w-12 h-12 rounded-full" />
+          <img 
+            src={logo} 
+            alt="Logo" 
+            className={`w-12 h-12 rounded-full transition-all duration-300 ${
+              isProcessing 
+                ? 'animate-bristle drop-shadow-[0_0_8px_rgba(37,99,235,0.6)]' 
+                : ''
+            }`} 
+          />
           <span className="font-bold text-lg">MiMo One</span>
         </div>
         {/* 预留记忆进度条位置 */}
@@ -42,6 +51,12 @@ export default function App() {
             />
             Max Mode
           </label>
+          <button
+            onClick={() => setIsProcessing(!isProcessing)}
+            className="ml-4 px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 text-sm font-medium rounded shadow transition-colors"
+          >
+            测试运算
+          </button>
         </footer>
       </main>
 
