@@ -1,0 +1,35 @@
+const { app, BrowserWindow } = require('electron');
+const path = require('path');
+
+function createWindow() {
+  const win = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    autoHideMenuBar: true,
+    icon: path.join(__dirname, '../src/favicon.png'),
+    show: false,
+    backgroundColor: '#f8fafc',
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true
+    }
+  });
+  // 当页面准备就绪时显示窗口，避免白屏
+  win.once('ready-to-show', () => {
+    win.show();
+  });
+
+  // 等待 Vite 开发服务器启动后再加载页面，避免连接被拒绝
+  setTimeout(() => {
+    win.loadURL(`http://localhost:${process.env.PORT || 5174}`);
+  }, 1500);
+}
+
+
+app.whenReady().then(() => {
+  createWindow();
+});
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit();
+});
