@@ -112,5 +112,10 @@
 
 > 安装了 Zustand 库并定义了 AgentTask 数据结构；新建 store/useAppStore.ts 进行任务生命周期的全局托管；新建 lib/eventBus.ts 实现轻量级 EventEmitter；在 App.tsx 中完成事件订阅并在 handleSend 时派发 TASK_START 信号，实现了 B 栏与 C 栏数据流的完整联动。
 
+### [2026-06-14 20:19:15] A 栏与 C 栏交互细节实装
+
+> 在 useAppStore.ts 中增设 activeAgentId 全局状态；在 Sidebar.tsx 中实装了点击 Agent 切换点亮状态；在 SubagentMonitor.tsx 中引入 expandedTasks 局部状态，支持点击任务卡片折叠与展开日志，并增加 hover/pointer 悬浮动效。
+
+
 
 

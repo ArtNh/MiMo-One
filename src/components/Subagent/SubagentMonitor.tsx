@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 
 const SubagentMonitor: React.FC = () => {
   const tasks = useAppStore((state) => state.tasks);
+  const [expandedTasks, setExpandedTasks] = useState<Record<string, boolean>>({});
+
+  const toggleExpand = (id: string) => {
+    setExpandedTasks((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const renderStatusIndicator = (status: 'pending' | 'running' | 'completed') => {
     switch (status) {
@@ -43,7 +48,8 @@ const SubagentMonitor: React.FC = () => {
         {tasks.map((task) => (
           <div 
             key={task.id} 
-            className="flex flex-col p-3 border border-gray-100 rounded-lg bg-transparent mb-2 hover:bg-gray-50/50 transition-colors"
+            onClick={() => toggleExpand(task.id)}
+            className="flex flex-col p-3 border border-gray-100 rounded-lg bg-transparent mb-2 cursor-pointer hover:border-gray-300 hover:bg-gray-50/50 transition-all select-none"
           >
             {/* 上半部分：状态、名字和进度百分比 */}
             <div className="flex items-center justify-between mb-2.5">
@@ -78,8 +84,8 @@ const SubagentMonitor: React.FC = () => {
               <span>{getStatusText(task.status)}</span>
             </div>
 
-            {/* 日志输出区域 */}
-            {task.logs && task.logs.length > 0 && (
+            {/* 日志输出区域：仅在 expandedTasks[task.id] 为真时渲染展示 */}
+            {expandedTasks[task.id] && task.logs && task.logs.length > 0 && (
               <div className="mt-2.5 p-2 bg-gray-50/30 rounded text-[10px] font-mono text-gray-400 border border-gray-100/50 max-h-24 overflow-y-auto space-y-1">
                 {task.logs.map((log, logIdx) => (
                   <div key={logIdx} className="truncate">{`> ${log}`}</div>

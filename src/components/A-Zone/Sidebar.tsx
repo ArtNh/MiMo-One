@@ -1,4 +1,5 @@
 import logo from '../../favicon.png';
+import { useAppStore } from '../../store/useAppStore';
 
 interface SidebarProps {
   isProcessing: boolean;
@@ -20,6 +21,8 @@ const sidebarData = {
 };
 
 export default function Sidebar({ isProcessing }: SidebarProps) {
+  const activeAgentId = useAppStore((state) => state.activeAgentId);
+  const setActiveAgentId = useAppStore((state) => state.setActiveAgentId);
   return (
     <aside className="w-full h-full flex flex-col justify-between text-sm">
       {/* 顶部：Logo 与工作区 */}
@@ -63,18 +66,22 @@ export default function Sidebar({ isProcessing }: SidebarProps) {
         <div className="px-2">
           <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">智能体中枢</div>
           <div className="space-y-1.5">
-            {sidebarData.agents.map((agent) => (
-              <div 
-                key={agent.id}
-                className={`flex items-center px-3 py-2.5 rounded-lg border text-xs transition-all cursor-pointer ${
-                  agent.active 
-                    ? 'border-blue-300 bg-blue-50/50 text-blue-700 font-semibold shadow-sm' 
-                    : 'border-slate-150 bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-300'
-                }`}
-              >
-                <span className="truncate whitespace-nowrap">{agent.name}</span>
-              </div>
-            ))}
+            {sidebarData.agents.map((agent) => {
+              const isActive = agent.id === activeAgentId;
+              return (
+                <div 
+                  key={agent.id}
+                  onClick={() => setActiveAgentId(agent.id)}
+                  className={`flex items-center px-3 py-2.5 rounded-lg border text-xs transition-all cursor-pointer ${
+                    isActive 
+                      ? 'border-blue-300 bg-blue-50 text-blue-700 font-semibold shadow-sm' 
+                      : 'border-slate-150 bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-300'
+                  }`}
+                >
+                  <span className="truncate whitespace-nowrap">{agent.name}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

@@ -11,9 +11,11 @@ export interface AgentTask {
 
 interface AppState {
   tasks: AgentTask[];
+  activeAgentId: string;
   addTask: (task: Omit<AgentTask, 'id' | 'logs'>) => void;
   updateTaskStatus: (id: string, status: AgentTask['status'], progress?: number) => void;
   addTaskLog: (id: string, log: string) => void;
+  setActiveAgentId: (id: string) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -43,6 +45,7 @@ export const useAppStore = create<AppState>((set) => ({
       logs: ['Waiting in queue']
     }
   ],
+  activeAgentId: 'agent-harri',
   addTask: (task) => set((state) => {
     const newTask: AgentTask = {
       ...task,
@@ -64,5 +67,6 @@ export const useAppStore = create<AppState>((set) => ({
         ? { ...t, logs: [...t.logs, log] } 
         : t
     )
-  }))
+  })),
+  setActiveAgentId: (id) => set({ activeAgentId: id })
 }));
