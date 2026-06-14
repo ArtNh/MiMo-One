@@ -1,9 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import logo from './favicon.png';
 import HarriStateViewer, { HarriStatus } from './components/Harri/HarriStateViewer';
 import NapModeOverlay from './components/NapModeOverlay';
 import SubagentMonitor from './components/Subagent/SubagentMonitor';
 import { fetchAgentResponse } from './services/llmService';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 export default function App() {
   const [maxMode, setMaxMode] = useState(false);
@@ -13,6 +17,7 @@ export default function App() {
   const [workspaceName, setWorkspaceName] = useState('未挂载');
   const [rightPanelWidth, setRightPanelWidth] = useState(320);
   const [isDragging, setIsDragging] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // 监听鼠标移动与释放事件以调节右侧面板大小
   useEffect(() => {
@@ -62,6 +67,11 @@ export default function App() {
     { role: 'harri', content: '你好，我是 Harri，你的多智能体协作中枢。今天有什么我可以帮你的？' }
   ]);
 
+  // 自动滚动到底部
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   const handleSend = () => {
     const message = inputValue.trim();
     if (!message) return;
@@ -84,8 +94,9 @@ export default function App() {
       });
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
       handleSend();
     }
   };
@@ -144,23 +155,52 @@ export default function App() {
                 className={`max-w-[70%] p-3.5 rounded-2xl border shadow-sm text-sm leading-relaxed ${
                   msg.role === 'user' 
                     ? 'rounded-tr-none bg-blue-50 border-blue-100/50 text-blue-700' 
-                    : 'rounded-tl-none bg-gray-50 border-gray-100/50 text-gray-700'
+                    : 'rounded-tl-none bg-gray-50 border-gray-100/50 text-gray-700 prose prose-slate max-w-none'
                 }`}
               >
-                {msg.content}
+                {msg.role === 'user' ? (
+                  msg.content
+                ) : (
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      code({ node, className, children, ...props }) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        const inline = !match;
+                        return !inline ? (
+                          <SyntaxHighlighter
+                            style={vscDarkPlus}
+                            language={match[1]}
+                            PreTag="div"
+                            {...props}
+                          >
+                            {String(children).replace(/\n$/, '')}
+                          </SyntaxHighlighter>
+                        ) : (
+                          <code className={className} {...props}>
+                            {children}
+                          </code>
+                        );
+                      }
+                    }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
+                )}
               </div>
             </div>
           ))}
+          <div ref={messagesEndRef} />
         </section>
         {/* 底部输入舱 */}
         <footer className="p-4 border-t border-slate-200 bg-gray-50 flex items-center">
-          <input
-            type="text"
+          <textarea
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="在此输入..."
-            className={`flex-1 p-2 border rounded focus:outline-none ${maxMode ? 'ring-2 ring-blue-400' : 'border-slate-300'}`}
+            rows={1}
+            className={`flex-1 p-2 border rounded focus:outline-none resize-none overflow-y-auto ${maxMode ? 'ring-2 ring-blue-400' : 'border-slate-300'}`}
           />
           <label className="ml-4 flex items-center cursor-pointer select-none whitespace-nowrap shrink-0">
             <input

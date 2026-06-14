@@ -54,3 +54,27 @@
 
 > **数据管道结论**
 > 本管道设计实现了视图呈现（B区中央舱）与业务计算（LLM API服务类）的彻底解耦。预留了标准的异步数据接收流定义，便于在后续开发中无缝对接生产环境下的真实 OpenAI / Gemini 文本生成 API 接口。
+
+---
+
+### [2026-06-14 19:52:33] 对话输入管道与 Markdown 渲染实装
+
+#### 1. 对话数据结构 (Interface)
+在 B 栏（中央交互舱）中，对话流的消息对象声明结构如下：
+```typescript
+interface Message {
+  role: 'harri' | 'user';
+  content: string;
+}
+```
+
+#### 2. Markdown 富文本渲染与代码高亮策略
+- **富文本渲染**：当消息的 `role === 'harri'` 时，前端放弃纯文本直接输出，改用 `<ReactMarkdown>` 解析其 AST 树。通过引入 `remark-gfm` 支持增强型 Markdown 语法（如表格、删除线等）。
+- **代码高亮**：在 ReactMarkdown 组件的 `components.code` 自定义节点解析中，截获语言标识符（如 `language-typescript`），调用 `react-syntax-highlighter` (使用 `vscDarkPlus` 主题) 将代码块渲染为具有深色高亮主题的容器。
+- **排版微调**：使用 Tailwind 提供的 `prose prose-slate max-w-none` 类名修饰，自动优化富文本渲染时的行高与列表边距。
+
+#### 3. 输入管道与自动滚动锚定
+- **输入框重构 (Textarea)**：将输入节点改为 `textarea` 标签，配置 `rows={1}` 和 `resize-none`。
+- **回车拦截**：在 `onKeyDown` 中监听 `Enter`，若未按下 `Shift` 键，执行 `preventDefault()` 并直接触发 `handleSend()` 动作；若按下 `Shift+Enter` 则执行默认的换行。
+- **自动滚动锚定**：在对话容器最底部声明 `<div ref={messagesEndRef} />`。在 `useEffect` 中监听 `messages` 变化，触发 `messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })` 确保最新对话气泡总是处于视窗焦点。
+

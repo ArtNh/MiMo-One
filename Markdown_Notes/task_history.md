@@ -91,3 +91,7 @@
 ### [2026-06-14 19:49:50] 修复 Electron 默认加载端口失配导致 ERR_CONNECTION_REFUSED 的 Bug
 
 > 修正了 electron/main.js 中默认加载 URL 的 fallback 端口，从 5174 改为与 Vite 默认端口一致의 5173，避免了干净启动桌面端时出现端口失配而导致白屏的严重缺陷，并重新拉起桌面端进行交互测试。
+
+### [2026-06-14 19:52:33] 实装中央交互舱的对话输入管道与 Markdown 渲染
+
+> 实装了 B 区的受控 textarea 状态机流转绑定，拦截无 Shift 键的 Enter 换行进行消息发送；引入了 react-markdown、remark-gfm 与 Prism 代码语法高亮，对 Harri 的回复内容进行富文本高亮渲染，并增加 messagesEndRef 滚动到底部锚定。
