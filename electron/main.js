@@ -31,6 +31,12 @@ ipcMain.on('trigger-nap-mode', (event) => {
   console.log('Nap mode activated');
 });
 
+// 处理渲染进程获取工作区目录名称的请求
+ipcMain.handle('read-local-workspace', async () => {
+  const path = require('path');
+  return path.basename(process.cwd());
+});
+
 
 app.whenReady().then(() => {
   createWindow();

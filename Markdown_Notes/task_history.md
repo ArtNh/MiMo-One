@@ -52,6 +52,11 @@
 
 > 新建 src/services/llmService.ts 预留 2 秒延迟模拟响应，在 App.tsx 交互舱输入中引入以替代硬编码 Promise 架构，打通前端状态流转与服务调用的数据管道。
 
+### [2026-06-14 19:08:45] 【暂存同步】打通跨进程本地工作区读取权限并完成状态绑定
+
+> 执行 git add 暂存。已在 preload.js 暴露 invoke 方法，主进程 main.js 注册 handle("read-local-workspace") 接口，前端 App.tsx 在 useEffect 挂载时通过 IPC 动态获取项目根目录名并渲染至 Header 工作区状态栏。
+
+
 
 
 

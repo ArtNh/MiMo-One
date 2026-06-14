@@ -8,6 +8,14 @@ contextBridge.exposeInMainWorld('electron', {
       if (validChannels.includes(channel)) {
         ipcRenderer.send(channel, data);
       }
+    },
+    invoke: (channel, data) => {
+      // 允许的 IPC 双向通信白名单
+      const validChannels = ['read-local-workspace'];
+      if (validChannels.includes(channel)) {
+        return ipcRenderer.invoke(channel, data);
+      }
+      return Promise.reject(new Error(`Unauthorized IPC invoke channel: ${channel}`));
     }
   }
 });

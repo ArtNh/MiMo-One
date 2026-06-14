@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import logo from './favicon.png';
 import HarriStateViewer, { HarriStatus } from './components/Harri/HarriStateViewer';
 import NapModeOverlay from './components/NapModeOverlay';
@@ -9,6 +9,25 @@ export default function App() {
   const [harriStatus, setHarriStatus] = useState<HarriStatus>('idle');
   const [inputValue, setInputValue] = useState('');
   const [isNapModeActive, setIsNapModeActive] = useState(false);
+  const [workspaceName, setWorkspaceName] = useState('未挂载');
+
+  // 初始化获取本地工作区名称
+  useEffect(() => {
+    const fetchWorkspace = async () => {
+      try {
+        const electron = (window as any).electron;
+        if (electron && electron.ipcRenderer) {
+          const wsName = await electron.ipcRenderer.invoke('read-local-workspace');
+          if (wsName) {
+            setWorkspaceName(wsName);
+          }
+        }
+      } catch (err) {
+        console.error('获取工作区名称异常:', err);
+      }
+    };
+    fetchWorkspace();
+  }, []);
 
   const isProcessing = harriStatus === 'processing';
 
@@ -60,7 +79,7 @@ export default function App() {
       <main className="flex-1 bg-white flex flex-col">
         {/* 顶部状态栏 */}
         <header className="relative flex items-center justify-between w-full h-12 px-4 border-b border-gray-100">
-          <div className="text-sm text-gray-500">当前工作区: 未挂载</div>
+          <div className="text-sm text-gray-500">当前工作区: {workspaceName}</div>
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <HarriStateViewer 
               status={harriStatus} 
