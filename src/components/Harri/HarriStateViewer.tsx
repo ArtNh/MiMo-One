@@ -16,13 +16,19 @@ export const HarriStatusEnum = {
  * - 默认状态为 "sleeping"
  * - 在 "sleeping" 状态下使用淡入淡出的动画占位
  */
-const HarriStateViewer: React.FC = () => {
-  const [status, setStatus] = useState<HarriStatus>(HarriStatusEnum.Sleeping);
+interface HarriStateViewerProps {
+  status?: HarriStatus;
+}
 
-  // 示例：每 10 秒在 three 状态间循环（实际业务中由外部事件驱动）
+const HarriStateViewer: React.FC<HarriStateViewerProps> = ({ status: propStatus }) => {
+  const [internalStatus, setInternalStatus] = useState<HarriStatus>(HarriStatusEnum.Sleeping);
+
+  // 仅在没有传入外部 status 时，才启用内部的循环演示
   useEffect(() => {
+    if (propStatus !== undefined) return;
+
     const cycle = setInterval(() => {
-      setStatus(prev => {
+      setInternalStatus(prev => {
         switch (prev) {
           case HarriStatusEnum.Sleeping:
             return HarriStatusEnum.Processing;
@@ -34,10 +40,12 @@ const HarriStateViewer: React.FC = () => {
       });
     }, 10000);
     return () => clearInterval(cycle);
-  }, []);
+  }, [propStatus]);
+
+  const currentStatus = propStatus !== undefined ? propStatus : internalStatus;
 
   const renderContent = () => {
-    switch (status) {
+    switch (currentStatus) {
       case HarriStatusEnum.Sleeping:
         return (
           <div className="inline-flex items-center justify-center px-3 py-1 rounded-full border shadow-sm transition-colors duration-300 bg-gray-100 border-gray-200 text-gray-500 animate-pulse">
