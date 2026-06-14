@@ -9,7 +9,7 @@ export interface SubagentTask {
 
 const SubagentMonitor: React.FC = () => {
   // 初始化三条模拟的子进程任务数据
-  const [tasks, setTasks] = useState<SubagentTask[]>([
+  const [tasks] = useState<SubagentTask[]>([
     {
       id: 'task-1',
       taskName: '项目文件树深度遍历解析',

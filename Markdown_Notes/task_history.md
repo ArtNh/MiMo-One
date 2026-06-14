@@ -60,6 +60,11 @@
 
 > 执行 git add 暂存。已创建 SubagentMonitor.tsx 组件并引入 App.tsx，在右侧 C 监控区动态挂载三条具有完成度百分比与进度指示器的子智能体任务列表。
 
+### [2026-06-14 19:15:30] 【暂存同步】消除 SubagentMonitor 状态解构中未使用的 setTasks 警告
+
+> 执行 git add 暂存。移除了 SubagentMonitor.tsx 中解构定义但从未使用的 setTasks，消除了 TypeScript 对未使用变量的编译警告，保持代码规范与整洁。
+
+
 
 
 
