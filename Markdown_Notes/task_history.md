@@ -95,3 +95,7 @@
 ### [2026-06-14 19:52:33] 实装中央交互舱的对话输入管道与 Markdown 渲染
 
 > 实装了 B 区的受控 textarea 状态机流转绑定，拦截无 Shift 键的 Enter 换行进行消息发送；引入了 react-markdown、remark-gfm 与 Prism 代码语法高亮，对 Harri 的回复内容进行富文本高亮渲染，并增加 messagesEndRef 滚动到底部锚定。
+
+### [2026-06-14 20:06:05] A 栏 Sidebar 导航实装与 Logo 炸毛截断 Bug 修复
+
+> 在 App.tsx 中移除了原 Logo 硬编码逻辑并整合了新建的 Sidebar.tsx 导航组件，实装了数据驱动的工作区、智能体中枢和配置项列表；同时将 Logo 容器由 overflow-hidden 调整为 overflow-visible 并配置 padding，修复了 Harri 炸毛动效边缘被截断的 Bug。

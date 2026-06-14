@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import logo from './favicon.png';
 import HarriStateViewer, { HarriStatus } from './components/Harri/HarriStateViewer';
 import NapModeOverlay from './components/NapModeOverlay';
 import SubagentMonitor from './components/Subagent/SubagentMonitor';
+import Sidebar from './components/A-Zone/Sidebar';
 import { fetchAgentResponse } from './services/llmService';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -105,20 +105,7 @@ export default function App() {
     <div className={`flex h-screen w-screen text-sm text-gray-800 ${isDragging ? 'user-select-none' : ''}`}>
       {/* 左侧 A 区 */}
       <aside className="w-56 shrink-0 bg-slate-50 border-r border-slate-200 flex flex-col p-4">
-        <div className="flex items-center space-x-2 mb-4 overflow-hidden">
-          <img 
-            src={logo} 
-            alt="Logo" 
-            className={`w-12 h-12 rounded-full transition-all duration-300 ${
-              isProcessing 
-                ? 'animate-bristle drop-shadow-[0_0_8px_rgba(37,99,235,0.6)]' 
-                : ''
-            }`} 
-          />
-          <span className="font-bold text-lg truncate whitespace-nowrap">MiMo One</span>
-        </div>
-        {/* 预留记忆进度条位置 */}
-        <div className="flex-1"></div>
+        <Sidebar isProcessing={isProcessing} />
       </aside>
 
       {/* 中央 B 区 */}

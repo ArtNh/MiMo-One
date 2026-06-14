@@ -1,0 +1,62 @@
+# A 栏布局重构与 Logo 炸毛截断修复记录
+
+---
+
+> 本文档记录了针对左侧 A 栏（导航层）进行的首期功能实装。包括通过将 Logo 父容器重构为 `overflow-visible` 并注入 `p-2` 呼吸空间，解决了 Harri 炸毛动效被截断的显示 Bug；同时完成了 A 栏由 Sidebar 组件驱动的数据模型初始化与 Outline 风格渲染。
+
+---
+
+### [2026-06-14 20:06:05] Logo 炸毛修复与 Sidebar 导航数据模型实装
+
+#### 1. Logo 炸毛截断 Bug 修复
+- **Bug 诱因**：之前为了应对极小视口在 A 区应用了 `overflow-hidden`，导致 Harri Logo 在处于 `processing` 处理中状态时，所触发的旋转炸毛特效阴影（`drop-shadow`）以及位移边缘超出了容器边界，在物理上直接被浏览器截断，影响视觉连贯性。
+- **修补措施**：
+  - 将 Logo 标题所在的父容器类名由 `overflow-hidden` 修改为 `overflow-visible`。
+  - 为该容器注入 `p-2` 边距以及底部 `pb-3` 边框细线，腾出充足的阴影扩散与振荡摆动空间，解决了炸毛边缘截断问题。
+
+---
+
+#### 2. A 栏 Sidebar 数据驱动模型
+为了降低视图耦合，在新创建的 [Sidebar.tsx](file:///d:/MiMo%20One/src/components/A-Zone/Sidebar.tsx) 中声明了静态数据结构 `sidebarData`，以树状列表统一分配数据项：
+- `workspaces` (Array)：存储本地挂载的工作区实体列表，支持 active 选中态。
+- `agents` (Array)：定义当前中枢下辖的智能体中枢列表（如 Coder 编译、Explorer 检索等）。
+- `settings` (Array)：定义底部的系统与关于配置菜单项。
+
+#### 3. 极极简 Outline 风格 UI 重构
+- 布局整体采用 `w-full h-full flex flex-col justify-between` 隔离三大板块，实现上、中、下三段式强对齐。
+- 单项列表基于 `.map()` 渲染，并使用轻量的 border 细线条与冷色调选中态 `bg-blue-50/50 text-blue-700` 完成极简 Outline 线条视觉包装。
+
+---
+
+#### 4. 核心代码变更概要
+
+```diff
+@@ -1,8 +1,8 @@
+ import { useState, useEffect, useRef } from 'react';
+-import logo from './favicon.png';
+ import HarriStateViewer, { HarriStatus } from './components/Harri/HarriStateViewer';
+ import NapModeOverlay from './components/NapModeOverlay';
+ import SubagentMonitor from './components/Subagent/SubagentMonitor';
++import Sidebar from './components/A-Zone/Sidebar';
+ import { fetchAgentResponse } from './services/llmService';
+@@ -104,20 +104,7 @@
+     <div className={`flex h-screen w-screen text-sm text-gray-800 ${isDragging ? 'user-select-none' : ''}`}>
+       {/* 左侧 A 区 */}
+       <aside className="w-56 shrink-0 bg-slate-50 border-r border-slate-200 flex flex-col p-4">
+-        <div className="flex items-center space-x-2 mb-4 overflow-hidden">
+-          <img 
+-            src={logo} 
+-            alt="Logo" 
+-            className={`w-12 h-12 rounded-full transition-all duration-300 ${
+-              isProcessing 
+-                ? 'animate-bristle drop-shadow-[0_0_8px_rgba(37,99,235,0.6)]' 
+-                : ''
+-            }`} 
+-          />
+-          <span className="font-bold text-lg truncate whitespace-nowrap">MiMo One</span>
+-        </div>
+-        {/* 预留记忆进度条位置 */}
+-        <div className="flex-1"></div>
++        <Sidebar isProcessing={isProcessing} />
+       </aside>
+```
