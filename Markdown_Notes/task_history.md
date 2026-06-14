@@ -78,4 +78,8 @@
 
 ### [2026-06-14 19:37:30] 修复 B 栏 Header/Footer 响应式缩放换行与变形 Bug
 
-> 针对 B 区在宽度收缩时的对齐与换行 Bug，在 App.tsx 的 Header 工作区和右侧操作区，以及 Footer 输入区域控件中添加了 whitespace-nowrap 和 shrink-0，避免宽度缩小时发生折行与容器变形，完成响应式布局修复记录。
+> 针对 B 区在宽度收缩时的对齐与换行 Bug，在 App.tsx 的 Header 工作区 and 右侧操作区，以及 Footer 输入区域控件中添加了 whitespace-nowrap and shrink-0，避免宽度缩小时发生折行与容器变形，完成响应式布局修复记录。
+
+### [2026-06-14 19:42:30] 修复极小视口下的水平溢出与 A 栏文本挤压 Bug
+
+> 为防止极小视口下 DOM 树的水平溢出与 A 栏文字自动折行，在 Electron 主进程中注入系统级 minWidth/minHeight 限制（850x600），并在 App.tsx 左侧 A 区标题与 Logo 容器处注入 overflow-hidden 与 truncate whitespace-nowrap。

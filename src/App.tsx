@@ -94,7 +94,7 @@ export default function App() {
     <div className={`flex h-screen w-screen text-sm text-gray-800 ${isDragging ? 'user-select-none' : ''}`}>
       {/* 左侧 A 区 */}
       <aside className="w-64 bg-slate-50 border-r border-slate-200 flex flex-col p-4">
-        <div className="flex items-center space-x-2 mb-4">
+        <div className="flex items-center space-x-2 mb-4 overflow-hidden">
           <img 
             src={logo} 
             alt="Logo" 
@@ -104,7 +104,7 @@ export default function App() {
                 : ''
             }`} 
           />
-          <span className="font-bold text-lg">MiMo One</span>
+          <span className="font-bold text-lg truncate whitespace-nowrap">MiMo One</span>
         </div>
         {/* 预留记忆进度条位置 */}
         <div className="flex-1"></div>
