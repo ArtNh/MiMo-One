@@ -42,7 +42,12 @@
 
 ### [2026-06-14 18:35:40] 实现 Harri 点击事件与主进程 IPC 联通
 
-> 在 HarriStateViewer 胶囊组件上注入 onClick 监听器，创建 electron/preload.js 并重构主进程以安全注入 window.electron.ipcRenderer 发送机制，成功建立 trigger-nap-mode 主进程监听回调。
+> 在 HarriStateViewer 胶囊组件上注入 onClick 监听器，创建 electron/preload.js 并重构主进程以安全注入 window.electron.ipcRenderer 发送机制，成功建立 trigger-nap-mode 主进程监听回调.
+
+### [2026-06-14 18:43:20] 编写沉浸式伴我午睡（Nap Mode）全屏遮罩视图及状态挂载
+
+> 创建全屏偏冷色调毛玻璃遮罩组件 NapModeOverlay.tsx，在 App.tsx 根节点挂载并与 Harri 点击事件绑定激活；在遮罩组件最外层实现双击逃逸唤醒逻辑，完成设计手记归档。
+
 
 
 

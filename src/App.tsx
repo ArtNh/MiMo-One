@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import logo from './favicon.png';
 import HarriStateViewer, { HarriStatus } from './components/Harri/HarriStateViewer';
+import NapModeOverlay from './components/NapModeOverlay';
 
 export default function App() {
   const [maxMode, setMaxMode] = useState(false);
   const [harriStatus, setHarriStatus] = useState<HarriStatus>('idle');
   const [inputValue, setInputValue] = useState('');
+  const [isNapModeActive, setIsNapModeActive] = useState(false);
 
   const isProcessing = harriStatus === 'processing';
 
@@ -56,7 +58,13 @@ export default function App() {
         <header className="relative flex items-center justify-between w-full h-12 px-4 border-b border-gray-100">
           <div className="text-sm text-gray-500">当前工作区: 未挂载</div>
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <HarriStateViewer status={harriStatus} />
+            <HarriStateViewer 
+              status={harriStatus} 
+              onClick={() => {
+                setIsNapModeActive(true);
+                setHarriStatus('sleeping');
+              }}
+            />
           </div>
           <div className="flex items-center gap-3 text-xs text-gray-500">
             <span>上下文: 4.2k / 128k</span>
@@ -102,6 +110,16 @@ export default function App() {
         <h2 className="font-semibold text-lg mb-2">Subagent 监控</h2>
         {/* 监控内容留空 */}
       </aside>
+
+      {/* 伴我午睡模式全屏遮罩 */}
+      {isNapModeActive && (
+        <NapModeOverlay 
+          onWakeUp={() => {
+            setIsNapModeActive(false);
+            setHarriStatus('idle');
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -18,9 +18,10 @@ export const HarriStatusEnum = {
  */
 interface HarriStateViewerProps {
   status?: HarriStatus;
+  onClick?: () => void;
 }
 
-const HarriStateViewer: React.FC<HarriStateViewerProps> = ({ status: propStatus }) => {
+const HarriStateViewer: React.FC<HarriStateViewerProps> = ({ status: propStatus, onClick }) => {
   const [internalStatus, setInternalStatus] = useState<HarriStatus>(HarriStatusEnum.Sleeping);
 
   // 仅在没有传入外部 status 时，才启用内部的循环演示
@@ -52,6 +53,9 @@ const HarriStateViewer: React.FC<HarriStateViewerProps> = ({ status: propStatus 
       } else {
         console.warn('Electron IPC API not available.');
       }
+    }
+    if (onClick) {
+      onClick();
     }
   };
 
