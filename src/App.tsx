@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import logo from './favicon.png';
 import HarriStateViewer, { HarriStatus } from './components/Harri/HarriStateViewer';
 import NapModeOverlay from './components/NapModeOverlay';
+import SubagentMonitor from './components/Subagent/SubagentMonitor';
 import { fetchAgentResponse } from './services/llmService';
 
 export default function App() {
@@ -131,7 +132,7 @@ export default function App() {
       {/* 右侧 C 区 */}
       <aside className="w-96 bg-slate-50 border-l border-slate-200 p-4">
         <h2 className="font-semibold text-lg mb-2">Subagent 监控</h2>
-        {/* 监控内容留空 */}
+        <SubagentMonitor />
       </aside>
 
       {/* 伴我午睡模式全屏遮罩 */}

@@ -56,6 +56,11 @@
 
 > 执行 git add 暂存。已在 preload.js 暴露 invoke 方法，主进程 main.js 注册 handle("read-local-workspace") 接口，前端 App.tsx 在 useEffect 挂载时通过 IPC 动态获取项目根目录名并渲染至 Header 工作区状态栏。
 
+### [2026-06-14 19:13:10] 【暂存同步】初始化右侧 C 区 Subagent 任务队列与状态渲染
+
+> 执行 git add 暂存。已创建 SubagentMonitor.tsx 组件并引入 App.tsx，在右侧 C 监控区动态挂载三条具有完成度百分比与进度指示器的子智能体任务列表。
+
+
 
 
 
