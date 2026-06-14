@@ -34,22 +34,22 @@ const SubagentMonitor: React.FC = () => {
     switch (status) {
       case 'completed':
         return (
-          <span className="flex h-2.5 w-2.5 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-20"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          <span className="flex h-2 w-2 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-20"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
           </span>
         );
       case 'running':
         return (
-          <span className="flex h-2.5 w-2.5 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-500"></span>
+          <span className="flex h-2 w-2 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-300 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-400"></span>
           </span>
         );
       case 'pending':
       default:
         return (
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-300"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-gray-300"></span>
         );
     }
   };
@@ -65,41 +65,41 @@ const SubagentMonitor: React.FC = () => {
 
   return (
     <div className="flex flex-col space-y-4">
-      <div className="flex flex-col space-y-3 mt-2">
+      <div className="flex flex-col space-y-2 mt-2">
         {tasks.map((task) => (
           <div 
             key={task.id} 
-            className="flex flex-col p-3 rounded-lg border border-slate-100 bg-white shadow-sm hover:shadow-md transition-shadow duration-300"
+            className="flex flex-col p-3 border border-gray-100 rounded-lg bg-transparent mb-2 hover:bg-gray-50/50 transition-colors"
           >
             {/* 上半部分：状态、名字和进度百分比 */}
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2.5">
+            <div className="flex items-center justify-between mb-2.5">
+              <div className="flex items-center space-x-2">
                 {renderStatusIndicator(task.status)}
-                <span className="font-medium text-slate-700 text-xs tracking-wider truncate max-w-[180px]">
+                <span className="text-sm text-gray-700 truncate max-w-[200px]">
                   {task.taskName}
                 </span>
               </div>
-              <span className="text-slate-400 font-mono text-[10px] tracking-wider">
+              <span className="text-gray-400 font-mono text-xs">
                 {task.status === 'completed' ? '100%' : `${task.progress}%`}
               </span>
             </div>
 
-            {/* 下半部分：极简渐变进度条 */}
-            <div className="w-full bg-slate-100 rounded-full h-1 overflow-hidden">
+            {/* 中半部分：极简扁平化进度条 */}
+            <div className="w-full bg-gray-100 rounded-full h-1 overflow-hidden mb-2.5">
               <div 
                 className={`h-full rounded-full transition-all duration-1000 ${
                   task.status === 'completed' 
                     ? 'bg-emerald-400' 
                     : task.status === 'running' 
-                    ? 'bg-sky-400' 
-                    : 'bg-slate-200'
+                    ? 'bg-blue-400' 
+                    : 'bg-gray-200'
                 }`}
                 style={{ width: `${task.progress}%` }}
               ></div>
             </div>
             
-            {/* 附加：状态与标识文字 */}
-            <div className="flex items-center justify-between mt-1 text-[10px] text-slate-400 tracking-widest font-light">
+            {/* 下半部分：状态与标识文字 */}
+            <div className="flex items-center justify-between text-xs text-gray-400">
               <span>{task.id.toUpperCase()}</span>
               <span>{getStatusText(task.status)}</span>
             </div>

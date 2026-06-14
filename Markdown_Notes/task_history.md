@@ -64,6 +64,11 @@
 
 > 执行 git add 暂存。移除了 SubagentMonitor.tsx 中解构定义但从未使用的 setTasks，消除了 TypeScript 对未使用变量的编译警告，保持代码规范与整洁。
 
+### [2026-06-14 19:22:30] 【暂存同步】重构右侧 C 区 Subagent 监控界面为极简冷色调扁平风格
+
+> 执行 git add 暂存。移除了卡片容器阴影，将卡片外框改用扁平 border/transition-colors 交互，缩短进度条轨道并降低指示灯与填充条色彩饱和度，规范标题与 Task ID 字体字号排版。
+
+
 
 
 
