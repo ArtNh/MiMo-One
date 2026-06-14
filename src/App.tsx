@@ -2,6 +2,7 @@ import { useState } from 'react';
 import logo from './favicon.png';
 import HarriStateViewer, { HarriStatus } from './components/Harri/HarriStateViewer';
 import NapModeOverlay from './components/NapModeOverlay';
+import { fetchAgentResponse } from './services/llmService';
 
 export default function App() {
   const [maxMode, setMaxMode] = useState(false);
@@ -12,18 +13,21 @@ export default function App() {
   const isProcessing = harriStatus === 'processing';
 
   const handleSend = () => {
-    if (!inputValue.trim()) return;
+    const message = inputValue.trim();
+    if (!message) return;
     setHarriStatus('processing');
     setInputValue('');
 
-    // 模拟消息发送的网络延迟（Promise 异步链）
-    new Promise<void>((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, 2000);
-    }).finally(() => {
-      setHarriStatus('idle');
-    });
+    fetchAgentResponse(message)
+      .then((res) => {
+        console.log('LLM 响应:', res);
+      })
+      .catch((err) => {
+        console.error('LLM 请求异常:', err);
+      })
+      .finally(() => {
+        setHarriStatus('idle');
+      });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
