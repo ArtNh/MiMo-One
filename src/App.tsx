@@ -58,6 +58,9 @@ export default function App() {
   }, []);
 
   const isProcessing = harriStatus === 'processing';
+  const [messages, setMessages] = useState<{ role: 'harri' | 'user'; content: string }[]>([
+    { role: 'harri', content: '你好，我是 Harri，你的多智能体协作中枢。今天有什么我可以帮你的？' }
+  ]);
 
   const handleSend = () => {
     const message = inputValue.trim();
@@ -65,9 +68,13 @@ export default function App() {
     setHarriStatus('processing');
     setInputValue('');
 
+    // 追加用户发送的消息气泡
+    setMessages(prev => [...prev, { role: 'user', content: message }]);
+
     fetchAgentResponse(message)
       .then((res) => {
-        console.log('LLM 响应:', res);
+        // 追加 Harri 回应的消息气泡
+        setMessages(prev => [...prev, { role: 'harri', content: res }]);
       })
       .catch((err) => {
         console.error('LLM 请求异常:', err);
@@ -106,9 +113,14 @@ export default function App() {
       {/* 中央 B 区 */}
       <main className="flex-1 min-w-[400px] bg-white flex flex-col">
         {/* 顶部状态栏 */}
-        <header className="relative flex items-center justify-between w-full h-12 px-4 border-b border-gray-100">
-          <div className="text-sm text-gray-500">当前工作区: {workspaceName}</div>
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <header className="flex items-center w-full h-12 px-4 border-b border-gray-100 gap-4">
+          {/* 左侧：自适应缩略区 */}
+          <div className="flex-1 min-w-0">
+            <div className="text-sm text-gray-500 truncate">当前工作区: {workspaceName}</div>
+          </div>
+          
+          {/* 居中：状态显示胶囊 */}
+          <div className="shrink-0 flex justify-center">
             <HarriStateViewer 
               status={harriStatus} 
               onClick={() => {
@@ -117,14 +129,30 @@ export default function App() {
               }}
             />
           </div>
-          <div className="flex items-center gap-3 text-xs text-gray-500">
-            <span>上下文: 4.2k / 128k</span>
-            <button className="px-2 py-1 rounded bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer">压缩</button>
+          
+          {/* 右侧：操作区 */}
+          <div className="flex-1 flex justify-end shrink-0">
+            <div className="flex items-center gap-3 text-xs text-gray-500">
+              <span>上下文: 4.2k / 128k</span>
+              <button className="px-2 py-1 rounded bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer">压缩</button>
+            </div>
           </div>
         </header>
         {/* 中间交互区 */}
-        <section className="flex-1 p-4 overflow-auto">
-          {/* Chat Stream 区域，留白 */}
+        <section className="flex-1 overflow-y-auto p-6 space-y-6">
+          {messages.map((msg, index) => (
+            <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div 
+                className={`max-w-[70%] p-3.5 rounded-2xl border shadow-sm text-sm leading-relaxed ${
+                  msg.role === 'user' 
+                    ? 'rounded-tr-none bg-blue-50 border-blue-100/50 text-blue-700' 
+                    : 'rounded-tl-none bg-gray-50 border-gray-100/50 text-gray-700'
+                }`}
+              >
+                {msg.content}
+              </div>
+            </div>
+          ))}
         </section>
         {/* 底部输入舱 */}
         <footer className="p-4 border-t border-slate-200 bg-gray-50 flex items-center">

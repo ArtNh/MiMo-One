@@ -72,6 +72,11 @@
 
 > 执行 git add 暂存。引入 rightPanelWidth 与 isDragging 拖拽状态钩子，增加全局 mousemove/mouseup 监听，重构 B 栏自适应宽度及 C 栏受控内联样式，并在两者间插入带 cursor-col-resize 样式的可拖拽分割条。
 
+### [2026-06-14 19:31:10] 【暂存同步】重构 Header 三栏式 Flex 布局并初始化 Chat 气泡流视图
+
+> 执行 git add 暂存。将 B 区 Header 拆分为 Left-Center-Right 的自适应三栏 flex 排版以解决拖拽重叠 Bug；同时初始化 messages 数组，实现用户与 Harri 消息的左右分栏气泡渲染及数据流追加。
+
+
 
 
 
