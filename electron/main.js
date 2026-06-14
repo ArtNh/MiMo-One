@@ -24,7 +24,7 @@ function createWindow() {
 
   // 等待 Vite 开发服务器启动后再加载页面，避免连接被拒绝
   setTimeout(() => {
-    win.loadURL(`http://localhost:${process.env.PORT || 5174}`);
+    win.loadURL(`http://localhost:${process.env.PORT || 5173}`);
   }, 1500);
 }
 

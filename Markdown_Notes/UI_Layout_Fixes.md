@@ -159,3 +159,27 @@
            </div>
          </header>
 ```
+
+---
+
+### [2026-06-14 19:49:50] 修复 Electron 默认加载端口失配导致 ERR_CONNECTION_REFUSED 的 Bug
+
+#### 1. 问题陈述
+在关闭其余冗余后台 Vite 服务进行干净的桌面端整体启动测试时，Electron 窗口出现白屏，控制台抛出 `ERR_CONNECTION_REFUSED` 报错。经排查，Vite 默认在 `5173` 端口拉起，而 Electron 主进程中加载 URL 的 fallback 端口硬编码为 `5174`，产生了端口失配现象。
+
+#### 2. 修补机制
+- **对齐加载端口**：
+  - 修改 `electron/main.js`，将 `win.loadURL` 处的默认 fallback 端口从 `5174` 改为 `5173`，从而与 Vite 默认服务端口完全一致。
+  - 重启桌面端后成功建立连接，无报错。
+
+---
+
+#### 3. 代码变更对照 (Diff 概要)
+
+```diff
+@@ -25,3 +25,3 @@
+   setTimeout(() => {
+-    win.loadURL(`http://localhost:${process.env.PORT || 5174}`);
++    win.loadURL(`http://localhost:${process.env.PORT || 5173}`);
+   }, 1500);
+```
