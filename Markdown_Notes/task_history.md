@@ -104,3 +104,13 @@
 
 > 修复了 App.tsx 中 SyntaxHighlighter 样式类型声明的分配冲突（采用 as any 强转解析），并删除了 Sidebar.tsx 中未被使用的 React 静态导入，消除了 TypeScript 编译期的警告与报错，恢复了控制台全绿状态。
 
+### [2026-06-14 20:13:30] 修复 SyntaxHighlighter 因 props 展开导致不兼容 ref 属性的 TS 编译错误
+
+> 将 react-markdown 传入的 props 进行高级解构，剥离并解耦了属于原生 HTML 元素的 ref 属性（LegacyRef<HTMLElement>），避免将其展开注入给 SyntaxHighlighter 导致重载失败，消除了最后的编译错误并顺利完成生产环境打包。
+
+### [2026-06-14 20:14:55] 实装事件总线与 Zustand 全局状态联动架构
+
+> 安装了 Zustand 库并定义了 AgentTask 数据结构；新建 store/useAppStore.ts 进行任务生命周期的全局托管；新建 lib/eventBus.ts 实现轻量级 EventEmitter；在 App.tsx 中完成事件订阅并在 handleSend 时派发 TASK_START 信号，实现了 B 栏与 C 栏数据流的完整联动。
+
+
+

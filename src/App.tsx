@@ -8,6 +8,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { eventBus } from './lib/eventBus';
+import { useAppStore } from './store/useAppStore';
 
 export default function App() {
   const [maxMode, setMaxMode] = useState(false);
@@ -72,6 +74,23 @@ export default function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // 监听事件总线以动态创建任务并挂载
+  useEffect(() => {
+    const handleTaskStart = (data: { agentName: string; taskName: string }) => {
+      useAppStore.getState().addTask({
+        agentName: data.agentName,
+        taskName: data.taskName,
+        status: 'running',
+        progress: 15
+      });
+    };
+
+    eventBus.on('TASK_START', handleTaskStart);
+    return () => {
+      eventBus.off('TASK_START', handleTaskStart);
+    };
+  }, []);
+
   const handleSend = () => {
     const message = inputValue.trim();
     if (!message) return;
@@ -80,6 +99,12 @@ export default function App() {
 
     // 追加用户发送的消息气泡
     setMessages(prev => [...prev, { role: 'user', content: message }]);
+
+    // 触发事件总线，新建子任务挂载
+    eventBus.emit('TASK_START', {
+      agentName: 'Harri 中枢',
+      taskName: message.length > 20 ? `${message.substring(0, 18)}...` : message
+    });
 
     fetchAgentResponse(message)
       .then((res) => {
