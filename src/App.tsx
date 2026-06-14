@@ -154,12 +154,13 @@ export default function App() {
                       code({ node, className, children, ...props }) {
                         const match = /language-(\w+)/.exec(className || '');
                         const inline = !match;
+                        const { ref, ...rest } = props as any;
                         return !inline ? (
                           <SyntaxHighlighter
                             style={vscDarkPlus as any}
                             language={match[1]}
                             PreTag="div"
-                            {...props}
+                            {...rest}
                           >
                             {String(children).replace(/\n$/, '')}
                           </SyntaxHighlighter>
