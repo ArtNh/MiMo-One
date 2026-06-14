@@ -93,7 +93,7 @@ export default function App() {
   return (
     <div className={`flex h-screen w-screen text-sm text-gray-800 ${isDragging ? 'user-select-none' : ''}`}>
       {/* 左侧 A 区 */}
-      <aside className="w-64 bg-slate-50 border-r border-slate-200 flex flex-col p-4">
+      <aside className="w-56 shrink-0 bg-slate-50 border-r border-slate-200 flex flex-col p-4">
         <div className="flex items-center space-x-2 mb-4 overflow-hidden">
           <img 
             src={logo} 
@@ -113,14 +113,14 @@ export default function App() {
       {/* 中央 B 区 */}
       <main className="flex-1 min-w-[400px] bg-white flex flex-col">
         {/* 顶部状态栏 */}
-        <header className="flex items-center w-full h-12 px-4 border-b border-gray-100 gap-4">
+        <header className="grid grid-cols-[1fr_auto_1fr] items-center w-full h-12 px-4 border-b border-gray-100">
           {/* 左侧：自适应缩略区 */}
-          <div className="flex-1 min-w-0">
+          <div className="justify-self-start flex items-center min-w-0 overflow-hidden">
             <div className="text-sm text-gray-500 truncate whitespace-nowrap">当前工作区: {workspaceName}</div>
           </div>
           
           {/* 居中：状态显示胶囊 */}
-          <div className="shrink-0 flex justify-center">
+          <div className="justify-self-center">
             <HarriStateViewer 
               status={harriStatus} 
               onClick={() => {
@@ -131,11 +131,9 @@ export default function App() {
           </div>
           
           {/* 右侧：操作区 */}
-          <div className="flex-1 flex justify-end shrink-0">
-            <div className="flex items-center gap-3 text-xs text-gray-500">
-              <span className="whitespace-nowrap">上下文: 4.2k / 128k</span>
-              <button className="px-2 py-1 rounded bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer whitespace-nowrap shrink-0">压缩</button>
-            </div>
+          <div className="justify-self-end flex items-center gap-3 text-xs text-gray-500">
+            <span className="whitespace-nowrap">上下文: 4.2k / 128k</span>
+            <button className="px-2 py-1 rounded bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer whitespace-nowrap shrink-0">压缩</button>
           </div>
         </header>
         {/* 中间交互区 */}

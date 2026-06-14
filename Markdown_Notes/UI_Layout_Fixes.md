@@ -99,3 +99,63 @@
 +          <span className="font-bold text-lg truncate whitespace-nowrap">MiMo One</span>
          </div>
 ```
+
+---
+
+### [2026-06-14 19:46:02] A 栏宽度锁定与 B 栏 Header Grid 重构
+
+#### 1. 问题陈述
+在极限视口缩放测试中发现，左侧导航栏（A 区）的宽度仍然会被压缩，导致 Logo 标题受到挤压。另外，原有的 B 栏 Header Flex 布局（Left-Center-Right Flex Pattern）在容器尺寸发生极端变化时，由于两侧元素的尺寸在自适应变化，导致中间的 Harri 状态显示胶囊无法保持绝对几何居中。
+
+#### 2. 修补机制
+- **锁定 A 栏宽度 (A-Panel Width Lock)**：
+  - 移除了 A 区最外层 `aside` 容器的原宽度 `w-64`，重构为 `w-56 shrink-0`，从根本上锁死其物理宽度，从而消除其在 Flex 主体结构下被挤压的隐患。
+- **B 栏 Header 重构为 CSS Grid (Absolute Centering)**：
+  - 将 Header 容器由 `flex` 替换为 `grid grid-cols-[1fr_auto_1fr] items-center` 布局，使左、中、右三个区域强行占据确定的网格单元。
+  - 左侧当前工作区容器配置 `justify-self-start flex items-center min-w-0 overflow-hidden`，使其靠左贴边并自适应截断。
+  - 居中状态胶囊容器配置 `justify-self-center`，使其在三栏网格中实现真正的、数学意义上的完美几何绝对居中。
+  - 右侧上下文监控容器配置 `justify-self-end flex items-center gap-3`，使其靠右贴边。
+
+---
+
+#### 3. 代码变更对照 (Diff 概要)
+
+```diff
+@@ -93,3 +93,3 @@
+   return (
+     <div className={`flex h-screen w-screen text-sm text-gray-800 ${isDragging ? 'user-select-none' : ''}`}>
+       {/* 左侧 A 区 */}
+-      <aside className="w-64 bg-slate-50 border-r border-slate-200 flex flex-col p-4">
++      <aside className="w-56 shrink-0 bg-slate-50 border-r border-slate-200 flex flex-col p-4">
+@@ -112,9 +112,9 @@
+       {/* 中央 B 区 */}
+       <main className="flex-1 min-w-[400px] bg-white flex flex-col">
+         {/* 顶部状态栏 */}
+-        <header className="flex items-center w-full h-12 px-4 border-b border-gray-100 gap-4">
++        <header className="grid grid-cols-[1fr_auto_1fr] items-center w-full h-12 px-4 border-b border-gray-100">
+           {/* 左侧：自适应缩略区 */}
+-          <div className="flex-1 min-w-0">
++          <div className="justify-self-start flex items-center min-w-0 overflow-hidden">
+             <div className="text-sm text-gray-500 truncate whitespace-nowrap">当前工作区: {workspaceName}</div>
+           </div>
+           
+@@ -121,4 +121,4 @@
+-          <div className="shrink-0 flex justify-center">
++          <div className="justify-self-center">
+             <HarriStateViewer 
+               status={harriStatus} 
+@@ -128,11 +128,9 @@
+           </div>
+           
+           {/* 右侧：操作区 */}
+-          <div className="flex-1 flex justify-end shrink-0">
+-            <div className="flex items-center gap-3 text-xs text-gray-500">
+-              <span className="whitespace-nowrap">上下文: 4.2k / 128k</span>
+-              <button className="px-2 py-1 rounded bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer whitespace-nowrap shrink-0">压缩</button>
+-            </div>
++          <div className="justify-self-end flex items-center gap-3 text-xs text-gray-500">
++            <span className="whitespace-nowrap">上下文: 4.2k / 128k</span>
++            <button className="px-2 py-1 rounded bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer whitespace-nowrap shrink-0">压缩</button>
+           </div>
+         </header>
+```

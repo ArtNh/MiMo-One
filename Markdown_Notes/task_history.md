@@ -83,3 +83,7 @@
 ### [2026-06-14 19:42:30] 修复极小视口下的水平溢出与 A 栏文本挤压 Bug
 
 > 为防止极小视口下 DOM 树的水平溢出与 A 栏文字自动折行，在 Electron 主进程中注入系统级 minWidth/minHeight 限制（850x600），并在 App.tsx 左侧 A 区标题与 Logo 容器处注入 overflow-hidden 与 truncate whitespace-nowrap。
+
+### [2026-06-14 19:46:02] A 栏宽度锁定与 B 栏 Header Grid 重构
+
+> 强制将 A 区容器宽度锁定为 w-56 shrink-0 杜绝文本挤压；同时将 B 区 Header 替换为 grid-cols-[1fr_auto_1fr] 的 CSS Grid 布局，使左、中、右三栏通过网格单元强制隔离，实现状态胶囊的完美物理居中对齐，完成本阶段界面重构并归档。
