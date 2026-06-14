@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
 function createWindow() {
@@ -11,7 +11,8 @@ function createWindow() {
     backgroundColor: '#f8fafc',
     webPreferences: {
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
     }
   });
   // 当页面准备就绪时显示窗口，避免白屏
@@ -24,6 +25,11 @@ function createWindow() {
     win.loadURL(`http://localhost:${process.env.PORT || 5174}`);
   }, 1500);
 }
+
+// 监听渲染进程的“触发休眠模式”信号
+ipcMain.on('trigger-nap-mode', (event) => {
+  console.log('Nap mode activated');
+});
 
 
 app.whenReady().then(() => {

@@ -44,23 +44,43 @@ const HarriStateViewer: React.FC<HarriStateViewerProps> = ({ status: propStatus 
 
   const currentStatus = propStatus !== undefined ? propStatus : internalStatus;
 
+  const handleContainerClick = () => {
+    if (typeof window !== 'undefined') {
+      const electron = (window as any).electron;
+      if (electron && electron.ipcRenderer) {
+        electron.ipcRenderer.send('trigger-nap-mode');
+      } else {
+        console.warn('Electron IPC API not available.');
+      }
+    }
+  };
+
   const renderContent = () => {
     switch (currentStatus) {
       case HarriStatusEnum.Sleeping:
         return (
-          <div className="inline-flex items-center justify-center px-3 py-1 rounded-full border shadow-sm transition-colors duration-300 bg-gray-100 border-gray-200 text-gray-500 animate-pulse">
+          <div 
+            onClick={handleContainerClick}
+            className="inline-flex items-center justify-center px-3 py-1 rounded-full border shadow-sm transition-colors duration-300 bg-gray-100 border-gray-200 text-gray-500 animate-pulse cursor-pointer"
+          >
             💤 Zzz... (Harri 正在休眠)
           </div>
         );
       case HarriStatusEnum.Processing:
         return (
-        <div className="inline-flex items-center justify-center px-3 py-1 rounded-full border shadow-sm transition-colors duration-300 bg-blue-50 border-blue-200 text-blue-600 animate-pulse">
+        <div 
+          onClick={handleContainerClick}
+          className="inline-flex items-center justify-center px-3 py-1 rounded-full border shadow-sm transition-colors duration-300 bg-blue-50 border-blue-200 text-blue-600 animate-pulse cursor-pointer"
+        >
           ✍️ 揉揉眼睛，正在搬砖...
         </div>
       );
       case HarriStatusEnum.Idle:
         return (
-        <div className="inline-flex items-center justify-center px-4 py-2 rounded-full border shadow-sm transition-all duration-500 bg-emerald-50 border-emerald-200 text-emerald-800">
+        <div 
+          onClick={handleContainerClick}
+          className="inline-flex items-center justify-center px-4 py-2 rounded-full border shadow-sm transition-all duration-500 bg-emerald-50 border-emerald-200 text-emerald-800 cursor-pointer"
+        >
           ☕ 刚睡醒，随时待命
         </div>
       );

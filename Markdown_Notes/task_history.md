@@ -40,4 +40,9 @@
 
 > 在测试中发现由于挂载点与组件内部双重绝对定位嵌套，导致容器宽度坍塌文本折行且整体向上偏移。已移除组件内部 absolute 样式，增加 whitespace-nowrap 强制单行显示，经验证定位与排版完美恢复。
 
+### [2026-06-14 18:35:40] 实现 Harri 点击事件与主进程 IPC 联通
+
+> 在 HarriStateViewer 胶囊组件上注入 onClick 监听器，创建 electron/preload.js 并重构主进程以安全注入 window.electron.ipcRenderer 发送机制，成功建立 trigger-nap-mode 主进程监听回调。
+
+
 
