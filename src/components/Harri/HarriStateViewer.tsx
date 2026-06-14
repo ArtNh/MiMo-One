@@ -40,13 +40,13 @@ const HarriStateViewer: React.FC = () => {
     switch (status) {
       case HarriStatusEnum.Sleeping:
         return (
-          <div className="inline-flex items-center justify-center px-4 py-2 rounded-full border shadow-sm transition-all duration-500 bg-gray-50/50 border-transparent text-gray-400 animate-pulse">
-            💤 Zzz...
+          <div className="inline-flex items-center justify-center px-3 py-1 rounded-full border shadow-sm transition-colors duration-300 bg-gray-100 border-gray-200 text-gray-500 animate-pulse">
+            💤 Zzz... (Harri 正在休眠)
           </div>
         );
       case HarriStatusEnum.Processing:
         return (
-        <div className="inline-flex items-center justify-center px-4 py-2 rounded-full border shadow-sm transition-all duration-500 bg-blue-50 border-blue-200 text-blue-600 animate-bounce">
+        <div className="inline-flex items-center justify-center px-3 py-1 rounded-full border shadow-sm transition-colors duration-300 bg-blue-50 border-blue-200 text-blue-600 animate-pulse">
           ✍️ 揉揉眼睛，正在搬砖...
         </div>
       );
@@ -62,7 +62,7 @@ const HarriStateViewer: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center p-2">
+    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
       
       {renderContent()}
     </div>
