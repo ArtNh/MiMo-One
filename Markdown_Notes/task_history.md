@@ -99,3 +99,8 @@
 ### [2026-06-14 20:06:05] A 栏 Sidebar 导航实装与 Logo 炸毛截断 Bug 修复
 
 > 在 App.tsx 中移除了原 Logo 硬编码逻辑并整合了新建的 Sidebar.tsx 导航组件，实装了数据驱动的工作区、智能体中枢和配置项列表；同时将 Logo 容器由 overflow-hidden 调整为 overflow-visible 并配置 padding，修复了 Harri 炸毛动效边缘被截断的 Bug。
+
+### [2026-06-14 20:09:30] 修复 TS 类型重载不匹配与未读取的 React 导入警告
+
+> 修复了 App.tsx 中 SyntaxHighlighter 样式类型声明的分配冲突（采用 as any 强转解析），并删除了 Sidebar.tsx 中未被使用的 React 静态导入，消除了 TypeScript 编译期的警告与报错，恢复了控制台全绿状态。
+

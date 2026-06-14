@@ -156,7 +156,7 @@ export default function App() {
                         const inline = !match;
                         return !inline ? (
                           <SyntaxHighlighter
-                            style={vscDarkPlus}
+                            style={vscDarkPlus as any}
                             language={match[1]}
                             PreTag="div"
                             {...props}
