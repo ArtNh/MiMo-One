@@ -40,24 +40,32 @@ const HarriStateViewer: React.FC = () => {
     switch (status) {
       case HarriStatusEnum.Sleeping:
         return (
-          <div className="text-gray-500 italic animate-pulse">
-            Zzz...（Harri 正在休眠）
+          <div className="inline-flex items-center justify-center px-4 py-2 rounded-full border shadow-sm transition-all duration-500 bg-gray-50/50 border-transparent text-gray-400 animate-pulse">
+            💤 Zzz...
           </div>
         );
       case HarriStatusEnum.Processing:
-        return <div className="text-blue-600">Harri 正在处理任务</div>;
+        return (
+        <div className="inline-flex items-center justify-center px-4 py-2 rounded-full border shadow-sm transition-all duration-500 bg-blue-50 border-blue-200 text-blue-600 animate-bounce">
+          ✍️ 揉揉眼睛，正在搬砖...
+        </div>
+      );
       case HarriStatusEnum.Idle:
-        return <div className="text-green-600">Harri 空闲待命</div>;
+        return (
+        <div className="inline-flex items-center justify-center px-4 py-2 rounded-full border shadow-sm transition-all duration-500 bg-emerald-50 border-emerald-200 text-emerald-800">
+          ☕ 刚睡醒，随时待命
+        </div>
+      );
       default:
         return null;
     }
   };
 
   return (
-    <section className="p-2 border-b border-slate-200 bg-gray-50">
-      <h3 className="text-sm font-medium mb-1">Harri 状态</h3>
+    <div className="flex items-center justify-center p-2">
+      
       {renderContent()}
-    </section>
+    </div>
   );
 };
 

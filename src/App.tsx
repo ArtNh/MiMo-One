@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import logo from './favicon.png';
-
+import HarriStateViewer from './components/Harri/HarriStateViewer';
 export default function App() {
   const [maxMode, setMaxMode] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -28,8 +28,15 @@ export default function App() {
       {/* 中央 B 区 */}
       <main className="flex-1 bg-white flex flex-col">
         {/* 顶部状态栏 */}
-        <header className="p-3 border-b border-slate-200">
-          当前任务：<span className="font-medium">空闲</span>
+        <header className="relative flex items-center justify-between w-full h-12 px-4 border-b border-gray-100">
+          <div className="text-sm text-gray-500">当前工作区: 未挂载</div>
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <HarriStateViewer />
+          </div>
+          <div className="flex items-center gap-3 text-xs text-gray-500">
+            <span>上下文: 4.2k / 128k</span>
+            <button className="px-2 py-1 rounded bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer">压缩</button>
+          </div>
         </header>
         {/* 中间交互区 */}
         <section className="flex-1 p-4 overflow-auto">
