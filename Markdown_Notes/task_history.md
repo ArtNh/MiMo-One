@@ -68,6 +68,11 @@
 
 > 执行 git add 暂存。移除了卡片容器阴影，将卡片外框改用扁平 border/transition-colors 交互，缩短进度条轨道并降低指示灯与填充条色彩饱和度，规范标题与 Task ID 字体字号排版。
 
+### [2026-06-14 19:25:30] 【暂存同步】实现 B 区与 C 区横向拖拽调节宽度布局
+
+> 执行 git add 暂存。引入 rightPanelWidth 与 isDragging 拖拽状态钩子，增加全局 mousemove/mouseup 监听，重构 B 栏自适应宽度及 C 栏受控内联样式，并在两者间插入带 cursor-col-resize 样式的可拖拽分割条。
+
+
 
 
 

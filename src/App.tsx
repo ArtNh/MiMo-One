@@ -11,6 +11,33 @@ export default function App() {
   const [inputValue, setInputValue] = useState('');
   const [isNapModeActive, setIsNapModeActive] = useState(false);
   const [workspaceName, setWorkspaceName] = useState('未挂载');
+  const [rightPanelWidth, setRightPanelWidth] = useState(320);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // 监听鼠标移动与释放事件以调节右侧面板大小
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      let newWidth = window.innerWidth - e.clientX;
+      if (newWidth < 250) newWidth = 250;
+      if (newWidth > 600) newWidth = 600;
+      setRightPanelWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
 
   // 初始化获取本地工作区名称
   useEffect(() => {
@@ -57,7 +84,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen w-screen text-sm text-gray-800">
+    <div className={`flex h-screen w-screen text-sm text-gray-800 ${isDragging ? 'user-select-none' : ''}`}>
       {/* 左侧 A 区 */}
       <aside className="w-64 bg-slate-50 border-r border-slate-200 flex flex-col p-4">
         <div className="flex items-center space-x-2 mb-4">
@@ -77,7 +104,7 @@ export default function App() {
       </aside>
 
       {/* 中央 B 区 */}
-      <main className="flex-1 bg-white flex flex-col">
+      <main className="flex-1 min-w-[400px] bg-white flex flex-col">
         {/* 顶部状态栏 */}
         <header className="relative flex items-center justify-between w-full h-12 px-4 border-b border-gray-100">
           <div className="text-sm text-gray-500">当前工作区: {workspaceName}</div>
@@ -129,8 +156,20 @@ export default function App() {
         </footer>
       </main>
 
+      {/* 可拖拽分割线 Resizer */}
+      <div 
+        onMouseDown={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
+        className="w-1 cursor-col-resize bg-gray-100 hover:bg-blue-400 active:bg-blue-500 transition-colors z-10 shrink-0"
+      />
+
       {/* 右侧 C 区 */}
-      <aside className="w-96 bg-slate-50 border-l border-slate-200 p-4">
+      <aside 
+        style={{ width: rightPanelWidth }}
+        className="shrink-0 bg-slate-50 border-l border-slate-200 p-4"
+      >
         <h2 className="font-semibold text-lg mb-2">Subagent 监控</h2>
         <SubagentMonitor />
       </aside>
