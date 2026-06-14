@@ -116,7 +116,7 @@ export default function App() {
         <header className="flex items-center w-full h-12 px-4 border-b border-gray-100 gap-4">
           {/* 左侧：自适应缩略区 */}
           <div className="flex-1 min-w-0">
-            <div className="text-sm text-gray-500 truncate">当前工作区: {workspaceName}</div>
+            <div className="text-sm text-gray-500 truncate whitespace-nowrap">当前工作区: {workspaceName}</div>
           </div>
           
           {/* 居中：状态显示胶囊 */}
@@ -133,8 +133,8 @@ export default function App() {
           {/* 右侧：操作区 */}
           <div className="flex-1 flex justify-end shrink-0">
             <div className="flex items-center gap-3 text-xs text-gray-500">
-              <span>上下文: 4.2k / 128k</span>
-              <button className="px-2 py-1 rounded bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer">压缩</button>
+              <span className="whitespace-nowrap">上下文: 4.2k / 128k</span>
+              <button className="px-2 py-1 rounded bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer whitespace-nowrap shrink-0">压缩</button>
             </div>
           </div>
         </header>
@@ -164,7 +164,7 @@ export default function App() {
             placeholder="在此输入..."
             className={`flex-1 p-2 border rounded focus:outline-none ${maxMode ? 'ring-2 ring-blue-400' : 'border-slate-300'}`}
           />
-          <label className="ml-4 flex items-center cursor-pointer select-none">
+          <label className="ml-4 flex items-center cursor-pointer select-none whitespace-nowrap shrink-0">
             <input
               type="checkbox"
               className="mr-1"
@@ -177,7 +177,7 @@ export default function App() {
             onClick={() => {
               setHarriStatus(prev => prev === 'processing' ? 'idle' : 'processing');
             }}
-            className="ml-4 px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 text-sm font-medium rounded shadow transition-colors"
+            className="ml-4 px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 text-sm font-medium rounded shadow transition-colors whitespace-nowrap shrink-0"
           >
             测试运算
           </button>

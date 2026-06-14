@@ -76,13 +76,6 @@
 
 > 执行 git add 暂存。将 B 区 Header 拆分为 Left-Center-Right 的自适应三栏 flex 排版以解决拖拽重叠 Bug；同时初始化 messages 数组，实现用户与 Harri 消息的左右分栏气泡渲染及数据流追加。
 
+### [2026-06-14 19:37:30] 修复 B 栏 Header/Footer 响应式缩放换行与变形 Bug
 
-
-
-
-
-
-
-
-
-
+> 针对 B 区在宽度收缩时的对齐与换行 Bug，在 App.tsx 的 Header 工作区和右侧操作区，以及 Footer 输入区域控件中添加了 whitespace-nowrap 和 shrink-0，避免宽度缩小时发生折行与容器变形，完成响应式布局修复记录。
