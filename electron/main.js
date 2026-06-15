@@ -2,6 +2,38 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { registerMimoExecutor } = require('./mimoCoreExecutor');
 const { MimoCore } = require('../src/vendor/mimo-code/dist');
+// 初始化 MimoCore 实例
+const mimo = new MimoCore();
+
+// ---------- 上下文标签 IPC ----------
+// 前端传递文件绝对路径，挂载到 MimoCore 上下文
+ipcMain.handle('mimo-add-context', async (event, filePath) => {
+  try {
+    if (typeof mimo.addContext === 'function') {
+      await mimo.addContext(filePath);
+      return { success: true };
+    }
+    return { success: false, error: 'MimoCore 没有 addContext 方法' };
+  } catch (err) {
+    console.error('[IPC] 添加上下文失败:', err);
+    return { success: false, error: err.message };
+  }
+});
+
+// ---------- 人类安全审批 IPC ----------
+// MimoCore 在需要执行危险操作前会调用此 IPC，请求前端审批
+ipcMain.handle('mimo-approval-request', async (event, payload) => {
+  // payload: { id, command, filePath }
+  // 将请求转发给渲染进程，返回一个 Promise，等待前端返回结果
+  return new Promise((resolve) => {
+    // 通过一次性事件通道发送请求
+    event.sender.send('mimo-approval-prompt', payload);
+    // 监听前端的响应
+    ipcMain.once(`mimo-approval-response-${payload.id}`, (e, response) => {
+      resolve(response);
+    });
+  });
+});
 
 function createWindow() {
   const win = new BrowserWindow({

@@ -3,7 +3,7 @@ import HarriStateViewer, { HarriStatus } from './components/Harri/HarriStateView
 import NapModeOverlay from './components/NapModeOverlay';
 import SubagentMonitor from './components/Subagent/SubagentMonitor';
 import Sidebar from './components/A-Zone/Sidebar';
-import { fetchAgentResponse } from './services/llmService';
+
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -23,11 +23,17 @@ export default function App() {
   const [rightPanelWidth, setRightPanelWidth] = useState(320);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  // 上下文标签和审批卡片状态
+  const [contextTags, setContextTags] = useState<string[]>([]);
+  const [showPicker, setShowPicker] = useState(false);
+  const [pickerQuery, setPickerQuery] = useState('');
+  const [approvalPayload, setApprovalPayload] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const activeAgentId = useAppStore((state) => state.activeAgentId);
   const workspaceFiles = useAppStore((state) => state.workspaceFiles);
   const pendingDiff = useAppStore((state) => state.pendingDiff);
+  const currentDiff = pendingDiff;
   const isCallingKernel = useAppStore((state) => state.isCallingKernel);
   const kernelCallingStatus = useAppStore((state) => state.kernelCallingStatus);
   const sessionId = useAppStore((state) => state.sessionId);
@@ -46,7 +52,6 @@ export default function App() {
     if (electron && electron.ipcRenderer) {
       const store = useAppStore.getState();
       
-      // 1. 创建 C 栏的 CLI 实时日志卡片
       const taskId = store.addTask({
         taskName: 'Mimo CLI 实时交互终端流',
         status: 'running',
@@ -56,17 +61,13 @@ export default function App() {
       mimoTaskIdRef.current = taskId;
       store.addTaskLog(taskId, '[GUI Wrapper] 成功接轨 Mimo CLI 控制台，彩色控制码通道已建立。');
 
-      // 2. 物理唤起 mimo chat 交互子进程
       electron.ipcRenderer.invoke('mimo-start-chat-process', { sessionId });
 
       let idleTimer: any = null;
 
-      // 3. 监听 stdout
       const cleanStdoutUnsub = electron.ipcRenderer.on('mimo-process-stdout', ({ text }: { text: string }) => {
-        // C 栏：直接塞入带有控制码的原生日志
         store.addTaskLog(taskId, text);
 
-        // B 栏：过滤去 ANSI 码，并流式更新当前活动智能体的最新气泡
         const cleanText = text.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
         if (cleanText) {
           const currentId = activeAgentIdRef.current;
@@ -88,7 +89,6 @@ export default function App() {
           });
         }
 
-        // 启发式状态检测：一旦收到输出，重置 2s 空闲定时器，空闲则置为 idle
         setHarriStatus('processing');
         if (idleTimer) clearTimeout(idleTimer);
         idleTimer = setTimeout(() => {
@@ -96,12 +96,10 @@ export default function App() {
         }, 2000);
       });
 
-      // 4. 监听 stderr
       const cleanStderrUnsub = electron.ipcRenderer.on('mimo-process-stderr', ({ text }: { text: string }) => {
         store.addTaskLog(taskId, `[STDERR] ${text}`);
       });
 
-      // 5. 监听退出
       const cleanExitUnsub = electron.ipcRenderer.on('mimo-process-exit', ({ code }: { code: number }) => {
         store.addTaskLog(taskId, `[内核提示] mimo 原生进程已退出，Code: ${code}`);
         setHarriStatus('idle');
@@ -116,7 +114,6 @@ export default function App() {
     }
   }, [sessionId]);
 
-  // 映射当前智能体名称
   const getActiveAgentName = () => {
     switch (activeAgentId) {
       case 'agent-harri': return 'Harri 中枢';
@@ -127,7 +124,6 @@ export default function App() {
   };
   const activeAgentName = getActiveAgentName();
 
-  // 监听鼠标移动与释放事件以调节右侧面板大小
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging) return;
@@ -152,7 +148,6 @@ export default function App() {
     };
   }, [isDragging]);
 
-  // 初始化获取本地工作区名称并执行扫描与索引构建
   useEffect(() => {
     const fetchWorkspace = async () => {
       try {
@@ -169,13 +164,11 @@ export default function App() {
     };
     fetchWorkspace();
 
-    // 初始化时触发工作区文件扫描与索引构建
     scanWorkspace();
   }, []);
 
   const isProcessing = harriStatus === 'processing';
   
-  // 按 agentId 隔离的消息队列
   const [agentMessages, setAgentMessages] = useState<Record<string, { role: 'harri' | 'user'; content: string }[]>>({
     'agent-harri': [
       { role: 'harri', content: '你好，我是 Harri，你的多智能体协作中枢。今天有什么我可以帮你的？' }
@@ -190,69 +183,87 @@ export default function App() {
 
   const currentMessages = agentMessages[activeAgentId] || [];
 
-  // 自动滚动到底部
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [currentMessages]);
 
-  const handleSend = async () => {
-    const message = inputValue.trim();
-    if (!message) return;
-    setInputValue('');
-
-    // 追加用户发送的消息气泡
-    setAgentMessages(prev => ({
-      ...prev,
-      [activeAgentId]: [...(prev[activeAgentId] || []), { role: 'user', content: message }]
-    }));
-
+  useEffect(() => {
     const electron = (window as any).electron;
     if (electron && electron.ipcRenderer) {
-      // 桌面端 Native CLI 包装模式
-      // 预先追加一条空的 Harri 中枢回应气泡，用于 PTY stdout 流式追加输出
-      setAgentMessages(prev => {
-        const current = prev[activeAgentId] || [];
-        return {
-          ...prev,
-          [activeAgentId]: [...current, { role: 'harri', content: '' }]
-        };
-      });
-      setHarriStatus('processing');
-      // 直接写入 stdin 交互流
-      await electron.ipcRenderer.invoke('send-mimo-input', message);
-    } else {
-      // 浏览器 Web 沙箱降级模拟模式
-      setHarriStatus('processing');
-      setAgentMessages(prev => {
-        const current = prev[activeAgentId] || [];
-        return {
-          ...prev,
-          [activeAgentId]: [...current, { role: 'harri', content: '' }]
-        };
-      });
-
-      let fullText = '';
-      fetchAgentResponse(message, workspaceFiles, (chunk) => {
-        fullText += chunk;
-        setAgentMessages(prev => {
-          const current = prev[activeAgentId] || [];
-          const updated = [...current];
-          if (updated.length > 0) {
-            updated[updated.length - 1] = { role: 'harri', content: fullText };
-          }
-          return {
-            ...prev,
-            [activeAgentId]: updated
-          };
-        });
-      })
-        .catch((err) => {
-          console.error('LLM Stream Response Error:', err);
-        })
-        .finally(() => {
-          setHarriStatus('idle');
-        });
+      const handler = (_event: any, payload: any) => {
+        setApprovalPayload(payload);
+      };
+      electron.ipcRenderer.on('mimo-approval-prompt', handler);
+      return () => {
+        electron.ipcRenderer.removeListener('mimo-approval-prompt', handler);
+      };
     }
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setInputValue(val);
+    const lastAt = val.lastIndexOf('@');
+    if (lastAt !== -1 && (lastAt === 0 || /\s/.test(val[lastAt - 1]))) {
+      setShowPicker(true);
+      setPickerQuery(val.slice(lastAt + 1));
+    } else {
+      setShowPicker(false);
+    }
+  };
+
+  const filteredFiles = workspaceFiles.filter(f => f.filePath.toLowerCase().includes(pickerQuery.toLowerCase()));
+
+  const selectFile = (filePath: string) => {
+    setContextTags(prev => [...prev, filePath]);
+    const atIdx = inputValue.lastIndexOf('@');
+    setInputValue(inputValue.slice(0, atIdx) + ' ');
+    setShowPicker(false);
+  };
+
+  const handleSend = async () => {
+    if (!inputValue.trim()) return;
+    const electron = (window as any).electron;
+    if (electron && electron.ipcRenderer) {
+      for (const path of contextTags) {
+        await electron.ipcRenderer.invoke('mimo-add-context', path);
+      }
+      await electron.ipcRenderer.invoke('send-mimo-input', inputValue);
+    }
+    setInputValue('');
+    setContextTags([]);
+  };
+
+  const renderApprovalCard = () => {
+    if (!approvalPayload) return null;
+    const { id, command, filePath } = approvalPayload;
+    const handleApprove = () => {
+      const electron = (window as any).electron;
+      if (electron && electron.ipcRenderer) {
+        electron.ipcRenderer.send(`mimo-approval-response-${id}`, { approved: true });
+      }
+      setApprovalPayload(null);
+    };
+    const handleReject = () => {
+      const electron = (window as any).electron;
+      if (electron && electron.ipcRenderer) {
+        electron.ipcRenderer.send(`mimo-approval-response-${id}`, { approved: false });
+      }
+      setApprovalPayload(null);
+    };
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded shadow-lg max-w-md w-full">
+          <h3 className="text-lg font-medium mb-2">安全审批请求</h3>
+          <p className="mb-2"><strong>命令：</strong>{command}</p>
+          {filePath && <p className="mb-2"><strong>文件：</strong>{filePath}</p>}
+          <div className="flex justify-end space-x-2">
+            <button onClick={handleReject} className="px-3 py-1 bg-red-200 hover:bg-red-300 text-red-800 rounded">拒绝</button>
+            <button onClick={handleApprove} className="px-3 py-1 bg-green-200 hover:bg-green-300 text-green-800 rounded">允许</button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -400,12 +411,12 @@ export default function App() {
           </section>
         ) : (
           <div className="flex-1 flex flex-col overflow-hidden bg-slate-50 p-4">
-            {pendingDiff ? (
+            {currentDiff ? (
               <>
                 <div className="bg-white border border-gray-200 rounded-lg p-3 mb-3 shrink-0 flex items-center justify-between shadow-sm">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-mono font-semibold shrink-0">MUTATION</span>
-                    <span className="text-xs font-semibold text-gray-700 font-mono truncate">{pendingDiff.fileName}</span>
+                    <span className="text-xs font-semibold text-gray-700 font-mono truncate">{currentDiff.fileName}</span>
                   </div>
                   <button 
                     onClick={() => useAppStore.getState().setPendingDiff(null)}
@@ -416,8 +427,8 @@ export default function App() {
                 </div>
                 <div className="flex-1 overflow-auto border border-gray-200 rounded-lg bg-white shadow-sm font-mono text-xs">
                   <ReactDiffViewer
-                    oldValue={pendingDiff.oldValue}
-                    newValue={pendingDiff.newValue}
+                    oldValue={currentDiff.oldValue}
+                    newValue={currentDiff.newValue}
                     splitView={true}
                     leftTitle="修改前 (Original)"
                     rightTitle="修改后 (Modified)"
@@ -451,32 +462,66 @@ export default function App() {
           </div>
         )}
         {/* 底部输入舱 */}
-        <footer className="p-4 border-t border-slate-200 bg-gray-50 flex items-center">
-          <textarea
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="在此输入..."
-            rows={1}
-            className={`flex-1 p-2 border rounded focus:outline-none resize-none overflow-y-auto ${maxMode ? 'ring-2 ring-blue-400' : 'border-slate-300'}`}
-          />
-          <label className="ml-4 flex items-center cursor-pointer select-none whitespace-nowrap shrink-0">
-            <input
-              type="checkbox"
-              className="mr-1"
-              checked={maxMode}
-              onChange={() => setMaxMode(!maxMode)}
+        <footer className="p-4 border-t border-slate-200 bg-gray-50 flex flex-col relative shrink-0">
+          {/* 文件选择下拉面板 */}
+          {showPicker && filteredFiles.length > 0 && (
+            <div className="absolute bottom-[calc(100%+8px)] left-4 right-4 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl z-50 flex flex-col">
+              {filteredFiles.map(file => (
+                <button
+                  key={file.filePath}
+                  onClick={() => selectFile(file.filePath)}
+                  className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 text-gray-700 border-b border-slate-100 last:border-b-0 truncate font-mono"
+                >
+                  {file.filePath}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* 上下文标签栏 */}
+          {contextTags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {contextTags.map(tag => (
+                <span key={tag} className="flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded-md text-xs font-mono">
+                  <span className="truncate max-w-xs">{tag.split('\\').pop() || tag.split('/').pop()}</span>
+                  <button 
+                    onClick={() => setContextTags(prev => prev.filter(t => t !== tag))}
+                    className="text-blue-400 hover:text-red-500 font-bold px-0.5"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-center w-full gap-2">
+            <textarea
+              value={inputValue}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              placeholder="在此输入... 输入 @ 引用工作区文件"
+              rows={1}
+              className={`flex-1 p-2 border rounded focus:outline-none resize-none overflow-y-auto ${maxMode ? 'ring-2 ring-blue-400' : 'border-slate-300'}`}
             />
-            Max Mode
-          </label>
-          <button
-            onClick={() => {
-              setHarriStatus(prev => prev === 'processing' ? 'idle' : 'processing');
-            }}
-            className="ml-4 px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 text-sm font-medium rounded shadow transition-colors whitespace-nowrap shrink-0"
-          >
-            测试运算
-          </button>
+            <label className="flex items-center cursor-pointer select-none whitespace-nowrap shrink-0">
+              <input
+                type="checkbox"
+                className="mr-1"
+                checked={maxMode}
+                onChange={() => setMaxMode(!maxMode)}
+              />
+              Max Mode
+            </label>
+            <button
+              onClick={() => {
+                setHarriStatus(prev => prev === 'processing' ? 'idle' : 'processing');
+              }}
+              className="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 text-sm font-medium rounded shadow transition-colors whitespace-nowrap shrink-0"
+            >
+              测试运算
+            </button>
+          </div>
         </footer>
       </main>
 
@@ -512,6 +557,9 @@ export default function App() {
           }}
         />
       )}
+
+      {/* 审批卡片 */}
+      {renderApprovalCard()}
     </div>
   );
 }
