@@ -5,7 +5,7 @@ import { eventBus } from '../../lib/eventBus';
 const SubagentMonitor: React.FC = () => {
   const tasks = useAppStore((state) => state.tasks);
   const [expandedTasks, setExpandedTasks] = useState<Record<string, boolean>>({});
-  const activeIntervals = useRef<NodeJS.Timeout[]>([]);
+  const activeIntervals = useRef<any[]>([]);
 
   useEffect(() => {
     const handleTaskTrigger = (data: { type: string; description: string }) => {

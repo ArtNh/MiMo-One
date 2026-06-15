@@ -121,3 +121,6 @@
 
 ### [2026-06-15 18:08:00] B 栏对话与 C 栏任务监控数据链路修复
 > 重构消息发送逻辑，改用 eventBus 派发 TASK_TRIGGER 信号解耦组件依赖；在 SubagentMonitor.tsx 中实现生命周期内的事件订阅和流式定时仿真进度累加，完成跨栏通信闭环与调试日志归档。
+
+### [2026-06-15 18:09:00] 解决 SubagentMonitor.tsx 前端打包找不到 NodeJS 命名空间的 TS 错误
+> 将组件内部用来存储仿真定时器句柄的 activeIntervals 数组引用由 NodeJS.Timeout[] 更改为 any[]，屏蔽纯前端渲染环境因没有引用 node 类型声明包导致的编译报错，确保生产打包全绿。

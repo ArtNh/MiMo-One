@@ -42,3 +42,6 @@
 `B 栏 handleSend` $\rightarrow$ `eventBus.emit('TASK_TRIGGER')` $\rightarrow$ `C 栏 useEffect 接收` $\rightarrow$ `setInterval 启动并更新 store.tasks` $\rightarrow$ `Zustand 通知更新` $\rightarrow$ `C 栏重绘`
 
 ---
+
+### [2026-06-15 18:09:00] 修复 SubagentMonitor.tsx 中 NodeJS 命名空间未定义报错
+> 在 TypeScript 编译时，因前端 React 运行环境默认未加载 Node.js 全局声明，导致声明 `activeIntervals` 时出现 “找不到命名空间 NodeJS” 的 TS 错误。已将 `activeIntervals` 的泛型声明更改为 `any[]` 以完美兼容，并成功通过本地编译打包。
