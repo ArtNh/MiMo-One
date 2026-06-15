@@ -33,11 +33,22 @@ function registerMimoExecutor(ipcMain, mainWindow) {
       }
     };
 
-    sendLog(`[内核] 正在拉起 Mimo Code 原生内核，指令: ${command} ${args.join(' ')}`);
+    // 路径保护：当在打包后的生产环境运行，且指令为 mimo-code 时，映射到 resourcesPath
+    let resolvedCommand = command;
+    if (command === 'mimo-code' || command === 'mimo-code.exe') {
+      const { app: electronApp } = require('electron');
+      if (electronApp && electronApp.isPackaged) {
+        const path = require('path');
+        const isWin = process.platform === 'win32';
+        resolvedCommand = path.join(process.resourcesPath, 'bin', isWin ? 'mimo-code.exe' : 'mimo-code');
+      }
+    }
+
+    sendLog(`[内核] 正在拉起 Mimo Code 原生内核，指令: ${resolvedCommand} ${args.join(' ')}`);
 
     try {
       // 启动子进程，继承当前环境变量（含 API 密钥等）并允许 Shell 执行以保障兼容性
-      const child = spawn(command, args, {
+      const child = spawn(resolvedCommand, args, {
         env: {
           ...process.env,
           ...extraEnv

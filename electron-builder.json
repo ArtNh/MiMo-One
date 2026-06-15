@@ -1,0 +1,28 @@
+{
+  "appId": "com.artnh.mimone",
+  "productName": "MiMo One",
+  "directories": {
+    "output": "dist-build"
+  },
+  "files": [
+    "dist/**/*",
+    "dist-electron/**/*",
+    "electron/**/*",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "bin",
+      "to": "bin",
+      "filter": ["**/*"]
+    }
+  ],
+  "win": {
+    "target": ["nsis"],
+    "icon": "src/favicon.png"
+  },
+  "mac": {
+    "target": ["dmg"],
+    "icon": "src/favicon.png"
+  }
+}
