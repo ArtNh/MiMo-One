@@ -10,6 +10,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useAppStore } from './store/useAppStore';
 import { eventBus } from './lib/eventBus';
+import { scanWorkspace } from './services/fileScanner';
 
 export default function App() {
   const [maxMode, setMaxMode] = useState(false);
@@ -22,6 +23,7 @@ export default function App() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const activeAgentId = useAppStore((state) => state.activeAgentId);
+  const workspaceFiles = useAppStore((state) => state.workspaceFiles);
 
   // 映射当前智能体名称
   const getActiveAgentName = () => {
@@ -59,7 +61,7 @@ export default function App() {
     };
   }, [isDragging]);
 
-  // 初始化获取本地工作区名称
+  // 初始化获取本地工作区名称并执行扫描与索引构建
   useEffect(() => {
     const fetchWorkspace = async () => {
       try {
@@ -75,6 +77,9 @@ export default function App() {
       }
     };
     fetchWorkspace();
+
+    // 初始化时触发工作区文件扫描与索引构建
+    scanWorkspace();
   }, []);
 
   const isProcessing = harriStatus === 'processing';
@@ -125,7 +130,7 @@ export default function App() {
       eventBus.emit('TASK_TRIGGER', { type: 'test', description: message });
     }
 
-    fetchAgentResponse(message)
+    fetchAgentResponse(message, workspaceFiles)
       .then((res) => {
         // 追加回应的消息气泡
         setAgentMessages(prev => ({

@@ -9,14 +9,22 @@ export interface AgentTask {
   progress: number;
 }
 
+export interface WorkspaceFile {
+  filePath: string;
+  summary: string;
+  size: number;
+}
+
 interface AppState {
   tasks: AgentTask[];
   activeAgentId: string;
+  workspaceFiles: WorkspaceFile[];
   addTask: (task: Omit<AgentTask, 'id' | 'logs'> & { id?: string }) => string;
   updateTaskStatus: (id: string, status: AgentTask['status'], progress?: number) => void;
   addTaskLog: (id: string, log: string) => void;
   setActiveAgentId: (id: string) => void;
   simulateTaskProgress: (taskId: string) => void;
+  setWorkspaceFiles: (files: WorkspaceFile[]) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -95,5 +103,7 @@ export const useAppStore = create<AppState>((set) => ({
         useAppStore.getState().addTaskLog(taskId, `[模拟器] 进度更新为 ${currentProgress}%`);
       }
     }, 500);
-  }
+  },
+  workspaceFiles: [],
+  setWorkspaceFiles: (files) => set({ workspaceFiles: files })
 }));

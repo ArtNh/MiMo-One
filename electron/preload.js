@@ -11,7 +11,7 @@ contextBridge.exposeInMainWorld('electron', {
     },
     invoke: (channel, data) => {
       // 允许的 IPC 双向通信白名单
-      const validChannels = ['read-local-workspace'];
+      const validChannels = ['read-local-workspace', 'scan-workspace-paths', 'read-file-summary'];
       if (validChannels.includes(channel)) {
         return ipcRenderer.invoke(channel, data);
       }
