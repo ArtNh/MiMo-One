@@ -15,6 +15,12 @@ export interface WorkspaceFile {
   size: number;
 }
 
+export interface CodeDiff {
+  fileName: string;
+  oldValue: string;
+  newValue: string;
+}
+
 interface AppState {
   tasks: AgentTask[];
   activeAgentId: string;
@@ -25,6 +31,8 @@ interface AppState {
   setActiveAgentId: (id: string) => void;
   simulateTaskProgress: (taskId: string) => void;
   setWorkspaceFiles: (files: WorkspaceFile[]) => void;
+  pendingDiff: CodeDiff | null;
+  setPendingDiff: (diff: CodeDiff | null) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -105,5 +113,11 @@ export const useAppStore = create<AppState>((set) => ({
     }, 500);
   },
   workspaceFiles: [],
-  setWorkspaceFiles: (files) => set({ workspaceFiles: files })
+  setWorkspaceFiles: (files) => set({ workspaceFiles: files }),
+  pendingDiff: {
+    fileName: 'src/components/A-Zone/Sidebar.tsx',
+    oldValue: `export default function Sidebar({ isProcessing }: SidebarProps) {\n  return (\n    <aside className="w-full h-full flex flex-col justify-between text-sm">\n      {/* 顶部：Logo 与工作区 */}\n      <div className="flex flex-col">\n        <div className="flex items-center space-x-2 p-2 pb-3 mb-4">\n          <img src={logo} alt="Logo" className="w-10 h-10" />\n          <div className="flex flex-col">\n            <span className="font-bold">MiMo One</span>\n          </div>\n        </div>\n      </div>\n    </aside>\n  );\n}`,
+    newValue: `export default function Sidebar({ isProcessing }: SidebarProps) {\n  return (\n    <aside className="w-full h-full flex flex-col justify-between overflow-hidden text-sm">\n      {/* 顶部 Logo 区：强制 shrink-0 锁死不压缩 */}\n      <div className="flex items-center space-x-2 p-2 pb-3 mb-4 shrink-0">\n        <img src={logo} alt="Logo" className="w-10 h-10 shrink-0" />\n        <div className="flex flex-col shrink-0">\n          <span className="font-bold">MiMo One</span>\n          <span className="text-[10px] text-blue-500 uppercase font-semibold">Active Agent</span>\n        </div>\n      </div>\n    </aside>\n  );\n}`
+  },
+  setPendingDiff: (diff) => set({ pendingDiff: diff })
 }));

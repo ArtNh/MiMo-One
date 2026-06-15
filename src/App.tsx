@@ -11,6 +11,8 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useAppStore } from './store/useAppStore';
 import { eventBus } from './lib/eventBus';
 import { scanWorkspace } from './services/fileScanner';
+// @ts-ignore
+import ReactDiffViewer from 'react-diff-viewer-continued';
 
 export default function App() {
   const [maxMode, setMaxMode] = useState(false);
@@ -24,6 +26,9 @@ export default function App() {
 
   const activeAgentId = useAppStore((state) => state.activeAgentId);
   const workspaceFiles = useAppStore((state) => state.workspaceFiles);
+  const pendingDiff = useAppStore((state) => state.pendingDiff);
+
+  const [activeTab, setActiveTab] = useState<'chat' | 'diff'>('chat');
 
   // 映射当前智能体名称
   const getActiveAgentName = () => {
@@ -229,65 +234,145 @@ $ ${command} ${args.join(' ')}
             <button className="px-2 py-1 rounded bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer whitespace-nowrap shrink-0">压缩</button>
           </div>
         </header>
-        {/* 中间交互区 */}
-        <section className="flex-1 overflow-y-auto p-6 space-y-6">
-          {currentMessages.map((msg, index) => (
-            <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div 
-                className={`max-w-[70%] p-3.5 rounded-2xl border shadow-sm text-sm leading-relaxed ${
-                  msg.role === 'user' 
-                    ? 'rounded-tr-none bg-blue-50 border-blue-100/50 text-blue-700' 
-                    : 'rounded-tl-none bg-gray-50 border-gray-100/50 text-gray-700 prose prose-slate max-w-none'
-                }`}
-              >
-                {msg.role === 'user' ? (
-                  msg.content
-                ) : (
-                  <ReactMarkdown 
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      code({ node, className, children, ...props }) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        const inline = !match;
-                        const { ref, ...rest } = props as any;
-                        return !inline ? (
-                          <SyntaxHighlighter
-                            style={vscDarkPlus as any}
-                            language={match[1]}
-                            PreTag="div"
-                            customStyle={{
-                              margin: '0.75rem 0',
-                              padding: '1rem',
-                              borderRadius: '0.5rem',
-                              fontSize: '0.825rem',
-                              lineHeight: '1.5',
-                              whiteSpace: 'pre-wrap',
-                              wordBreak: 'break-all',
-                              backgroundColor: '#1e1e1e'
-                            }}
-                            {...rest}
-                          >
-                            {String(children).replace(/\n$/, '')}
-                          </SyntaxHighlighter>
-                        ) : (
-                          <code 
-                            className="bg-slate-100 dark:bg-slate-800 text-blue-600 px-1.5 py-0.5 rounded font-mono text-xs font-semibold" 
-                            {...props}
-                          >
-                            {children}
-                          </code>
-                        );
+
+        {/* B区多维标签页 */}
+        <div className="flex border-b border-gray-100 px-6 bg-slate-50/50 shrink-0 select-none">
+          <button
+            onClick={() => setActiveTab('chat')}
+            className={`px-4 py-2 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+              activeTab === 'chat'
+                ? 'border-blue-500 text-blue-600 font-semibold'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            对话流
+          </button>
+          <button
+            onClick={() => setActiveTab('diff')}
+            className={`px-4 py-2 text-xs font-semibold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'diff'
+                ? 'border-blue-500 text-blue-600 font-semibold'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            代码变更对比
+            {pendingDiff && (
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+            )}
+          </button>
+        </div>
+
+        {/* 中间内容区域：有条件渲染对话流或 Diff 差异比对器 */}
+        {activeTab === 'chat' ? (
+          <section className="flex-1 overflow-y-auto p-6 space-y-6">
+            {currentMessages.map((msg, index) => (
+              <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div 
+                  className={`max-w-[70%] p-3.5 rounded-2xl border shadow-sm text-sm leading-relaxed ${
+                    msg.role === 'user' 
+                      ? 'rounded-tr-none bg-blue-50 border-blue-100/50 text-blue-700' 
+                      : 'rounded-tl-none bg-gray-50 border-gray-100/50 text-gray-700 prose prose-slate max-w-none'
+                  }`}
+                >
+                  {msg.role === 'user' ? (
+                    msg.content
+                  ) : (
+                    <ReactMarkdown 
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        code({ node, className, children, ...props }) {
+                          const match = /language-(\w+)/.exec(className || '');
+                          const inline = !match;
+                          const { ref, ...rest } = props as any;
+                          return !inline ? (
+                            <SyntaxHighlighter
+                              style={vscDarkPlus as any}
+                              language={match[1]}
+                              PreTag="div"
+                              customStyle={{
+                                margin: '0.75rem 0',
+                                padding: '1rem',
+                                borderRadius: '0.5rem',
+                                fontSize: '0.825rem',
+                                lineHeight: '1.5',
+                                whiteSpace: 'pre-wrap',
+                                wordBreak: 'break-all',
+                                backgroundColor: '#1e1e1e'
+                              }}
+                              {...rest}
+                            >
+                              {String(children).replace(/\n$/, '')}
+                            </SyntaxHighlighter>
+                          ) : (
+                            <code 
+                              className="bg-slate-100 dark:bg-slate-800 text-blue-600 px-1.5 py-0.5 rounded font-mono text-xs font-semibold" 
+                              {...props}
+                            >
+                              {children}
+                            </code>
+                          );
+                        }
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  )}
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </section>
+        ) : (
+          <div className="flex-1 flex flex-col overflow-hidden bg-slate-50 p-4">
+            {pendingDiff ? (
+              <>
+                <div className="bg-white border border-gray-200 rounded-lg p-3 mb-3 shrink-0 flex items-center justify-between shadow-sm">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-mono font-semibold shrink-0">MUTATION</span>
+                    <span className="text-xs font-semibold text-gray-700 font-mono truncate">{pendingDiff.fileName}</span>
+                  </div>
+                  <button 
+                    onClick={() => useAppStore.getState().setPendingDiff(null)}
+                    className="text-xs text-red-500 hover:text-red-700 font-semibold cursor-pointer shrink-0"
+                  >
+                    清除审查
+                  </button>
+                </div>
+                <div className="flex-1 overflow-auto border border-gray-200 rounded-lg bg-white shadow-sm font-mono text-xs">
+                  <ReactDiffViewer
+                    oldValue={pendingDiff.oldValue}
+                    newValue={pendingDiff.newValue}
+                    splitView={true}
+                    leftTitle="修改前 (Original)"
+                    rightTitle="修改后 (Modified)"
+                    styles={{
+                      variables: {
+                        dark: false,
+                        diffViewerBackground: '#ffffff',
+                        addedBackground: '#e6ffec',
+                        addedColor: '#1e8a3a',
+                        removedBackground: '#ffebe9',
+                        removedColor: '#b30919',
+                        wordAddedBackground: '#acf2bd',
+                        wordRemovedBackground: '#fdb8c0'
                       }
                     }}
-                  >
-                    {msg.content}
-                  </ReactMarkdown>
-                )}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center bg-slate-50/30 text-gray-400 p-8 select-none">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                  <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <p className="text-sm font-semibold text-gray-500">暂无待审查的代码变更</p>
+                <p className="text-xs text-gray-400 mt-1">当 Mimo Code 内核在后台修改本地文件时，会在此流式生成差异对比</p>
               </div>
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </section>
+            )}
+          </div>
+        )}
         {/* 底部输入舱 */}
         <footer className="p-4 border-t border-slate-200 bg-gray-50 flex items-center">
           <textarea
