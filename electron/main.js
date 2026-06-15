@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { registerMimoExecutor } = require('./mimoCoreExecutor');
+const { MimoCore } = require('../src/vendor/mimo-code/dist');
 
 function createWindow() {
   const win = new BrowserWindow({
