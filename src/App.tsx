@@ -214,12 +214,25 @@ export default function App() {
                             style={vscDarkPlus as any}
                             language={match[1]}
                             PreTag="div"
+                            customStyle={{
+                              margin: '0.75rem 0',
+                              padding: '1rem',
+                              borderRadius: '0.5rem',
+                              fontSize: '0.825rem',
+                              lineHeight: '1.5',
+                              whiteSpace: 'pre-wrap',
+                              wordBreak: 'break-all',
+                              backgroundColor: '#1e1e1e'
+                            }}
                             {...rest}
                           >
                             {String(children).replace(/\n$/, '')}
                           </SyntaxHighlighter>
                         ) : (
-                          <code className={className} {...props}>
+                          <code 
+                            className="bg-slate-100 dark:bg-slate-800 text-blue-600 px-1.5 py-0.5 rounded font-mono text-xs font-semibold" 
+                            {...props}
+                          >
                             {children}
                           </code>
                         );
