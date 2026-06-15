@@ -347,13 +347,15 @@ $ ${command} ${args.join(' ')}
                     rightTitle="修改后 (Modified)"
                     styles={{
                       variables: {
-                        diffViewerBackground: '#ffffff',
-                        addedBackground: '#e6ffec',
-                        addedColor: '#1e8a3a',
-                        removedBackground: '#ffebe9',
-                        removedColor: '#b30919',
-                        wordAddedBackground: '#acf2bd',
-                        wordRemovedBackground: '#fdb8c0'
+                        light: {
+                          diffViewerBackground: '#ffffff',
+                          addedBackground: '#e6ffec',
+                          addedColor: '#1e8a3a',
+                          removedBackground: '#ffebe9',
+                          removedColor: '#b30919',
+                          wordAddedBackground: '#acf2bd',
+                          wordRemovedBackground: '#fdb8c0'
+                        }
                       }
                     }}
                   />
