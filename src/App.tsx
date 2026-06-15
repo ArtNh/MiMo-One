@@ -347,7 +347,6 @@ $ ${command} ${args.join(' ')}
                     rightTitle="修改后 (Modified)"
                     styles={{
                       variables: {
-                        dark: false,
                         diffViewerBackground: '#ffffff',
                         addedBackground: '#e6ffec',
                         addedColor: '#1e8a3a',
