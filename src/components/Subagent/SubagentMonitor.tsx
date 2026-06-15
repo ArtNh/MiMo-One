@@ -60,12 +60,20 @@ const SubagentMonitor: React.FC = () => {
 
     eventBus.on('TASK_TRIGGER', handleTaskTrigger);
 
+    // 手动调用一次测试模拟函数，确保即便没有 B 栏触发，加载后 task-02 也会自动累进进度
+    useAppStore.getState().simulateTaskProgress('task-02');
+
     return () => {
       eventBus.off('TASK_TRIGGER', handleTaskTrigger);
       // 清除所有未完成的定时器，防止组件卸载或热更新引发内存泄漏
       activeIntervals.current.forEach(clearInterval);
     };
   }, []);
+
+  // 实时状态更新调试日志打印
+  useEffect(() => {
+    console.log('Subagent component rendering with tasks:', tasks);
+  }, [tasks]);
 
   const toggleExpand = (id: string) => {
     setExpandedTasks((prev) => ({ ...prev, [id]: !prev[id] }));

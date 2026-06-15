@@ -124,3 +124,6 @@
 
 ### [2026-06-15 18:09:00] 解决 SubagentMonitor.tsx 前端打包找不到 NodeJS 命名空间的 TS 错误
 > 将组件内部用来存储仿真定时器句柄的 activeIntervals 数组引用由 NodeJS.Timeout[] 更改为 any[]，屏蔽纯前端渲染环境因没有引用 node 类型声明包导致的编译报错，确保生产打包全绿。
+
+### [2026-06-15 18:14:00] 强化 C 栏订阅机制并注入任务状态模拟器
+> 在 useAppStore.ts 中加入 simulateTaskProgress 异步累进仿真 Action。在 SubagentMonitor.tsx 中引入对 tasks 更新的 console.log 副作用监听，并在初始化时手动挂载 task-02 仿真以确保 C 栏的流式重绘功能完美起效。

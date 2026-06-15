@@ -45,3 +45,7 @@
 
 ### [2026-06-15 18:09:00] 修复 SubagentMonitor.tsx 中 NodeJS 命名空间未定义报错
 > 在 TypeScript 编译时，因前端 React 运行环境默认未加载 Node.js 全局声明，导致声明 `activeIntervals` 时出现 “找不到命名空间 NodeJS” 的 TS 错误。已将 `activeIntervals` 的泛型声明更改为 `any[]` 以完美兼容，并成功通过本地编译打包。
+
+### [2026-06-15 18:14:00] 强化 C 栏订阅机制与状态模拟器注入
+> 为彻底验证 C 栏数据流的订阅重绘能力，在 Zustand 状态库中扩展了 `simulateTaskProgress(taskId)` 方法，以 500ms 周期异步累进进度。在 `SubagentMonitor.tsx` 初始化挂载时手动调用此方法测试 `task-02` 的自动推进。同时，在组件中声明了基于 `[tasks]` 改变的 `useEffect` 以在控制台实时打印任务的引用更新，全面验证数据同步链路。
+

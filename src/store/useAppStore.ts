@@ -16,6 +16,7 @@ interface AppState {
   updateTaskStatus: (id: string, status: AgentTask['status'], progress?: number) => void;
   addTaskLog: (id: string, log: string) => void;
   setActiveAgentId: (id: string) => void;
+  simulateTaskProgress: (taskId: string) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -72,5 +73,27 @@ export const useAppStore = create<AppState>((set) => ({
         : t
     )
   })),
-  setActiveAgentId: (id) => set({ activeAgentId: id })
+  setActiveAgentId: (id) => set({ activeAgentId: id }),
+  simulateTaskProgress: (taskId) => {
+    let currentProgress = 0;
+    const task = useAppStore.getState().tasks.find(t => t.id === taskId);
+    if (task) {
+      currentProgress = task.progress;
+    }
+
+    const interval = setInterval(() => {
+      const increment = Math.floor(Math.random() * 11) + 5; // 5% - 15%
+      currentProgress += increment;
+
+      if (currentProgress >= 100) {
+        currentProgress = 100;
+        clearInterval(interval);
+        useAppStore.getState().updateTaskStatus(taskId, 'completed', 100);
+        useAppStore.getState().addTaskLog(taskId, '[模拟器] 进度已达到 100%，仿真测试完成。');
+      } else {
+        useAppStore.getState().updateTaskStatus(taskId, 'running', currentProgress);
+        useAppStore.getState().addTaskLog(taskId, `[模拟器] 进度更新为 ${currentProgress}%`);
+      }
+    }, 500);
+  }
 }));
