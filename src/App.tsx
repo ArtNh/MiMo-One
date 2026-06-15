@@ -9,7 +9,6 @@ import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useAppStore } from './store/useAppStore';
-import { eventBus } from './lib/eventBus';
 import { scanWorkspace } from './services/fileScanner';
 // @ts-ignore
 import ReactDiffViewer from 'react-diff-viewer-continued';
