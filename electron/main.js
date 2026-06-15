@@ -101,6 +101,44 @@ ipcMain.handle('read-file-summary', async (event, relativePath) => {
   }
 });
 
+// 读取特定工作区文件的完整内容
+ipcMain.handle('read-workspace-file', async (event, relativePath) => {
+  const fs = require('fs').promises;
+  const path = require('path');
+  try {
+    const fullPath = path.resolve(process.cwd(), relativePath);
+    if (!fullPath.startsWith(process.cwd())) {
+      throw new Error(`Unauthorized file access path: ${relativePath}`);
+    }
+    const content = await fs.readFile(fullPath, 'utf8');
+    return content;
+  } catch (err) {
+    console.error(`Read workspace file failed for ${relativePath}:`, err);
+    throw err;
+  }
+});
+
+// 写入或重写工作区文件内容
+ipcMain.handle('write-workspace-file', async (event, { relativePath, content }) => {
+  const fs = require('fs').promises;
+  const path = require('path');
+  try {
+    const fullPath = path.resolve(process.cwd(), relativePath);
+    if (!fullPath.startsWith(process.cwd())) {
+      throw new Error(`Unauthorized file access path: ${relativePath}`);
+    }
+    // 确保父级目录存在
+    await fs.mkdir(path.dirname(fullPath), { recursive: true });
+    await fs.writeFile(fullPath, content, 'utf8');
+    return { success: true };
+  } catch (err) {
+    console.error(`Write workspace file failed for ${relativePath}:`, err);
+    return { success: false, error: err.message };
+  }
+});
+
+
+
 
 app.whenReady().then(() => {
   createWindow();

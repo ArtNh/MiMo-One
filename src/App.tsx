@@ -28,6 +28,8 @@ export default function App() {
   const activeAgentId = useAppStore((state) => state.activeAgentId);
   const workspaceFiles = useAppStore((state) => state.workspaceFiles);
   const pendingDiff = useAppStore((state) => state.pendingDiff);
+  const isCallingKernel = useAppStore((state) => state.isCallingKernel);
+  const kernelCallingStatus = useAppStore((state) => state.kernelCallingStatus);
 
   const [activeTab, setActiveTab] = useState<'chat' | 'diff'>('chat');
 
@@ -283,6 +285,19 @@ export default function App() {
                 </div>
               </div>
             ))}
+            {isCallingKernel && (
+              <div className="flex justify-start items-center space-x-3 bg-blue-50/40 border border-blue-100/30 rounded-xl p-3.5 max-w-[80%] animate-pulse select-none">
+                <div className="flex space-x-1 items-center shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs font-semibold text-blue-700 font-mono tracking-wider">[Mimo Code 内核调用中...]</span>
+                  <span className="text-[10px] text-blue-500/80 font-mono truncate mt-0.5">{kernelCallingStatus}</span>
+                </div>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </section>
         ) : (

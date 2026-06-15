@@ -33,9 +33,15 @@ interface AppState {
   setWorkspaceFiles: (files: WorkspaceFile[]) => void;
   pendingDiff: CodeDiff | null;
   setPendingDiff: (diff: CodeDiff | null) => void;
+  isCallingKernel: boolean;
+  kernelCallingStatus: string;
+  setIsCallingKernel: (isCalling: boolean, status?: string) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
+  isCallingKernel: false,
+  kernelCallingStatus: '',
+  setIsCallingKernel: (isCalling, status = '') => set({ isCallingKernel: isCalling, kernelCallingStatus: status }),
   tasks: [
     {
       id: 'task-01',

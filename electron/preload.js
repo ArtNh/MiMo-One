@@ -15,6 +15,8 @@ contextBridge.exposeInMainWorld('electron', {
         'read-local-workspace', 
         'scan-workspace-paths', 
         'read-file-summary',
+        'read-workspace-file',
+        'write-workspace-file',
         'run-mimo-command',
         'kill-mimo-command'
       ];
