@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { eventBus } from '../../lib/eventBus';
 import { executeMimoCommand } from '../../services/mimoCoreExecutor';
@@ -40,7 +40,6 @@ const renderLogLine = (log: string) => {
 const SubagentMonitor: React.FC = () => {
   const tasks = useAppStore((state) => state.tasks);
   const [expandedTasks, setExpandedTasks] = useState<Record<string, boolean>>({});
-  const activeIntervals = useRef<any[]>([]);
 
   useEffect(() => {
     const handleTaskTrigger = (data: { type: string; description: string }) => {
