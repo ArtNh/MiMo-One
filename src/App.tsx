@@ -123,75 +123,37 @@ export default function App() {
       [activeAgentId]: [...(prev[activeAgentId] || []), { role: 'user', content: message }]
     }));
 
-    // 检测指令关键词并触发 TASK_TRIGGER 事件传递给 C 栏
-    console.log('App.tsx handleSend message:', message);
-    const lowerMsg = message.toLowerCase();
-    if (lowerMsg.includes('编译') || lowerMsg.includes('构建') || lowerMsg.includes('生成') || lowerMsg.includes('compile') || lowerMsg.includes('build')) {
-      console.log('App.tsx emitting TASK_TRIGGER with type: compile');
-      eventBus.emit('TASK_TRIGGER', { type: 'compile', description: message });
-    } else if (lowerMsg.includes('分析') || lowerMsg.includes('检索') || lowerMsg.includes('搜索') || lowerMsg.includes('定位') || lowerMsg.includes('analyze') || lowerMsg.includes('search')) {
-      console.log('App.tsx emitting TASK_TRIGGER with type: analyze');
-      eventBus.emit('TASK_TRIGGER', { type: 'analyze', description: message });
-    } else if (lowerMsg.includes('测试') || lowerMsg.includes('诊断') || lowerMsg.includes('test') || lowerMsg.includes('diagnose')) {
-      console.log('App.tsx emitting TASK_TRIGGER with type: test');
-      eventBus.emit('TASK_TRIGGER', { type: 'test', description: message });
-    }
+    // 预先追加一条空的 Harri 中枢回应气泡，用于流式打字机追加输出
+    setAgentMessages(prev => {
+      const current = prev[activeAgentId] || [];
+      return {
+        ...prev,
+        [activeAgentId]: [...current, { role: 'harri', content: '' }]
+      };
+    });
 
-    const isMimoAction = lowerMsg.includes('编译') || lowerMsg.includes('构建') || lowerMsg.includes('生成') || 
-                         lowerMsg.includes('分析') || lowerMsg.includes('检索') || lowerMsg.includes('搜索') || 
-                         lowerMsg.includes('测试') || lowerMsg.includes('诊断') ||
-                         lowerMsg.includes('compile') || lowerMsg.includes('build') || 
-                         lowerMsg.includes('analyze') || lowerMsg.includes('search') ||
-                         lowerMsg.includes('test');
-
-    if (isMimoAction) {
-      // 停止调用 mock LLM 服务，交由本地原生内核进程处理
-      setTimeout(() => {
-        let command = 'mimo-code';
-        let args: string[] = [];
-        if (lowerMsg.includes('编译') || lowerMsg.includes('构建') || lowerMsg.includes('compile') || lowerMsg.includes('build')) {
-          command = 'npm';
-          args = ['run', 'build'];
-        } else if (lowerMsg.includes('分析') || lowerMsg.includes('检索') || lowerMsg.includes('search') || lowerMsg.includes('analyze')) {
-          command = 'mimo-code';
-          args = ['analyze', '--workspace', '.'];
-        } else if (lowerMsg.includes('测试') || lowerMsg.includes('诊断') || lowerMsg.includes('test')) {
-          command = 'npm';
-          args = ['test'];
+    let fullText = '';
+    fetchAgentResponse(message, workspaceFiles, (chunk) => {
+      fullText += chunk;
+      setAgentMessages(prev => {
+        const current = prev[activeAgentId] || [];
+        const updated = [...current];
+        if (updated.length > 0) {
+          // 更新最后一条哈里中枢应答气泡的内容
+          updated[updated.length - 1] = { role: 'harri', content: fullText };
         }
-
-        setAgentMessages(prev => ({
+        return {
           ...prev,
-          [activeAgentId]: [...(prev[activeAgentId] || []), { 
-            role: 'harri', 
-            content: `[内核接管] 已为您停用模拟大模型数据。本次指令 "${message}" 已由多智能体调度内核转换为本地物理指令参数并派发执行：
-
-\`\`\`bash
-$ ${command} ${args.join(' ')}
-\`\`\`
-
-> **内核调度成功**：子进程已流式唤起。有关进程的流式控制台日志（stdout/stderr）以及退出状态（Exit Code），请在右侧 **C 栏 (Subagent 监控)** 中展开对应卡片进行实时追踪。` 
-          }]
-        }));
+          [activeAgentId]: updated
+        };
+      });
+    })
+      .catch((err) => {
+        console.error('LLM Stream Response Error:', err);
+      })
+      .finally(() => {
         setHarriStatus('idle');
-      }, 600);
-    } else {
-      // 常规闲聊保留 Mock LLM 服务
-      fetchAgentResponse(message, workspaceFiles)
-        .then((res) => {
-          // 追加回应的消息气泡
-          setAgentMessages(prev => ({
-            ...prev,
-            [activeAgentId]: [...(prev[activeAgentId] || []), { role: 'harri', content: res }]
-          }));
-        })
-        .catch((err) => {
-          console.error('LLM 请求异常:', err);
-        })
-        .finally(() => {
-          setHarriStatus('idle');
-        });
-    }
+      });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
