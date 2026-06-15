@@ -24,28 +24,28 @@ export default function Sidebar({ isProcessing }: SidebarProps) {
   const activeAgentId = useAppStore((state) => state.activeAgentId);
   const setActiveAgentId = useAppStore((state) => state.setActiveAgentId);
   return (
-    <aside className="w-full h-full flex flex-col justify-between text-sm">
-      {/* 顶部：Logo 与工作区 */}
-      <div className="flex flex-col">
-        {/* Logo 区：配置 overflow-visible 与 p-2 呼吸空间，防止炸毛动效被截断 */}
-        <div className="flex items-center space-x-2 overflow-visible p-2 border-b border-slate-100 pb-3 mb-4">
-          <img 
-            src={logo} 
-            alt="Logo" 
-            className={`w-10 h-10 rounded-full transition-all duration-300 shrink-0 ${
-              isProcessing 
-                ? 'animate-bristle drop-shadow-[0_0_8px_rgba(37,99,235,0.6)]' 
-                : ''
-            }`} 
-          />
-          <div className="flex flex-col min-w-0 overflow-hidden">
-            <span className="font-bold text-base truncate whitespace-nowrap text-slate-800">MiMo One</span>
-            <span className="text-[10px] text-blue-500 uppercase tracking-widest font-semibold">Active Agent</span>
-          </div>
+    <aside className="w-full h-full flex flex-col justify-between overflow-hidden text-sm">
+      {/* 顶部 Logo 区：强制 shrink-0 锁死不压缩，配置 overflow-visible 防止特效截断 */}
+      <div className="flex items-center space-x-2 overflow-visible p-2 border-b border-slate-100 pb-3 mb-4 shrink-0">
+        <img 
+          src={logo} 
+          alt="Logo" 
+          className={`w-10 h-10 rounded-full transition-all duration-300 shrink-0 ${
+            isProcessing 
+              ? 'animate-bristle drop-shadow-[0_0_8px_rgba(37,99,235,0.6)]' 
+              : ''
+          }`} 
+        />
+        <div className="flex flex-col min-w-0 overflow-hidden">
+          <span className="font-bold text-base truncate whitespace-nowrap text-slate-800">MiMo One</span>
+          <span className="text-[10px] text-blue-500 uppercase tracking-widest font-semibold">Active Agent</span>
         </div>
+      </div>
 
+      {/* 中间：自适应可滚动工作区与智能体列表区域 */}
+      <div className="flex-1 overflow-y-auto min-h-0 pr-1 space-y-6">
         {/* 工作区段 */}
-        <div className="px-2 mb-6">
+        <div className="px-2">
           <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">工作区</div>
           {sidebarData.workspaces.map((ws) => (
             <div 
@@ -86,8 +86,8 @@ export default function Sidebar({ isProcessing }: SidebarProps) {
         </div>
       </div>
 
-      {/* 底部：系统设置 */}
-      <div className="px-2 pb-2">
+      {/* 底部：系统设置（锁死不收缩） */}
+      <div className="px-2 pt-4 pb-2 border-t border-slate-100 mt-4 shrink-0">
         <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">配置</div>
         <div className="space-y-1.5">
           {sidebarData.settings.map((set) => (

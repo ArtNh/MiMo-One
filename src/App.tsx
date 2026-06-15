@@ -154,9 +154,9 @@ export default function App() {
   };
 
   return (
-    <div className={`flex h-screen w-screen text-sm text-gray-800 ${isDragging ? 'user-select-none' : ''}`}>
+    <div className={`flex h-screen w-screen overflow-hidden text-sm text-gray-800 ${isDragging ? 'user-select-none' : ''}`}>
       {/* 左侧 A 区 */}
-      <aside className="w-56 shrink-0 bg-slate-50 border-r border-slate-200 flex flex-col p-4">
+      <aside className="w-56 shrink-0 bg-slate-50 border-r border-slate-200 flex flex-col p-4 h-full justify-between overflow-hidden">
         <Sidebar isProcessing={isProcessing} />
       </aside>
 
@@ -276,10 +276,12 @@ export default function App() {
       {/* 右侧 C 区 */}
       <aside 
         style={{ width: rightPanelWidth }}
-        className="shrink-0 bg-slate-50 border-l border-slate-200 p-4"
+        className="shrink-0 bg-slate-50 border-l border-slate-200 p-4 flex flex-col h-full overflow-hidden"
       >
-        <h2 className="font-semibold text-lg mb-2">Subagent 监控</h2>
-        <SubagentMonitor />
+        <h2 className="font-semibold text-lg mb-2 shrink-0">Subagent 监控</h2>
+        <div className="flex-1 overflow-y-auto pr-1">
+          <SubagentMonitor />
+        </div>
       </aside>
 
       {/* 伴我午睡模式全屏遮罩 */}
