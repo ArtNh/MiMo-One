@@ -9,7 +9,7 @@ import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useAppStore } from './store/useAppStore';
-import { TaskRunner } from './lib/taskRunner';
+import { eventBus } from './lib/eventBus';
 
 export default function App() {
   const [maxMode, setMaxMode] = useState(false);
@@ -111,11 +111,13 @@ export default function App() {
       [activeAgentId]: [...(prev[activeAgentId] || []), { role: 'user', content: message }]
     }));
 
-    // 检测指令关键词并派发任务到执行引擎
+    // 检测指令关键词并触发 TASK_TRIGGER 事件传递给 C 栏
     if (message.includes('编译') || message.includes('构建') || message.includes('生成')) {
-      TaskRunner.runTask('agent-coder', message);
+      eventBus.emit('TASK_TRIGGER', { type: 'compile', description: message });
     } else if (message.includes('分析') || message.includes('检索') || message.includes('搜索') || message.includes('定位')) {
-      TaskRunner.runTask('agent-explorer', message);
+      eventBus.emit('TASK_TRIGGER', { type: 'analyze', description: message });
+    } else if (message.includes('测试') || message.includes('诊断')) {
+      eventBus.emit('TASK_TRIGGER', { type: 'test', description: message });
     }
 
     fetchAgentResponse(message)
