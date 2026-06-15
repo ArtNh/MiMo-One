@@ -18,7 +18,12 @@ contextBridge.exposeInMainWorld('electron', {
         'read-workspace-file',
         'write-workspace-file',
         'run-mimo-command',
-        'kill-mimo-command'
+        'kill-mimo-command',
+        'save-mimo-config',
+        'mimo-new-session',
+        'mimo-init',
+        'mimo-start-chat-process',
+        'send-mimo-input'
       ];
       if (validChannels.includes(channel)) {
         return ipcRenderer.invoke(channel, data);
@@ -27,7 +32,13 @@ contextBridge.exposeInMainWorld('electron', {
     },
     // 支持订阅来自主进程的日志与状态回传事件
     on: (channel, callback) => {
-      const validChannels = ['mimo-log', 'mimo-status'];
+      const validChannels = [
+        'mimo-log', 
+        'mimo-status',
+        'mimo-process-stdout',
+        'mimo-process-stderr',
+        'mimo-process-exit'
+      ];
       if (validChannels.includes(channel)) {
         const subscription = (event, ...args) => callback(...args);
         ipcRenderer.on(channel, subscription);

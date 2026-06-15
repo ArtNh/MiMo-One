@@ -30,8 +30,91 @@ export default function App() {
   const pendingDiff = useAppStore((state) => state.pendingDiff);
   const isCallingKernel = useAppStore((state) => state.isCallingKernel);
   const kernelCallingStatus = useAppStore((state) => state.kernelCallingStatus);
+  const sessionId = useAppStore((state) => state.sessionId);
 
   const [activeTab, setActiveTab] = useState<'chat' | 'diff'>('chat');
+
+  const activeAgentIdRef = useRef(activeAgentId);
+  useEffect(() => {
+    activeAgentIdRef.current = activeAgentId;
+  }, [activeAgentId]);
+
+  const mimoTaskIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const electron = (window as any).electron;
+    if (electron && electron.ipcRenderer) {
+      const store = useAppStore.getState();
+      
+      // 1. 创建 C 栏的 CLI 实时日志卡片
+      const taskId = store.addTask({
+        taskName: 'Mimo CLI 实时交互终端流',
+        status: 'running',
+        agentName: 'Coder 编译',
+        progress: 100
+      });
+      mimoTaskIdRef.current = taskId;
+      store.addTaskLog(taskId, '[GUI Wrapper] 成功接轨 Mimo CLI 控制台，彩色控制码通道已建立。');
+
+      // 2. 物理唤起 mimo chat 交互子进程
+      electron.ipcRenderer.invoke('mimo-start-chat-process', { sessionId });
+
+      let idleTimer: any = null;
+
+      // 3. 监听 stdout
+      const cleanStdoutUnsub = electron.ipcRenderer.on('mimo-process-stdout', ({ text }: { text: string }) => {
+        // C 栏：直接塞入带有控制码的原生日志
+        store.addTaskLog(taskId, text);
+
+        // B 栏：过滤去 ANSI 码，并流式更新当前活动智能体的最新气泡
+        const cleanText = text.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
+        if (cleanText) {
+          const currentId = activeAgentIdRef.current;
+          setAgentMessages(prev => {
+            const currentList = [...(prev[currentId] || [])];
+            if (currentList.length > 0) {
+              const lastMsg = currentList[currentList.length - 1];
+              if (lastMsg.role === 'harri') {
+                const updatedMsg = { ...lastMsg, content: lastMsg.content + cleanText };
+                const nextList = [...currentList];
+                nextList[nextList.length - 1] = updatedMsg;
+                return { ...prev, [currentId]: nextList };
+              }
+            }
+            return {
+              ...prev,
+              [currentId]: [...currentList, { role: 'harri', content: cleanText }]
+            };
+          });
+        }
+
+        // 启发式状态检测：一旦收到输出，重置 2s 空闲定时器，空闲则置为 idle
+        setHarriStatus('processing');
+        if (idleTimer) clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+          setHarriStatus('idle');
+        }, 2000);
+      });
+
+      // 4. 监听 stderr
+      const cleanStderrUnsub = electron.ipcRenderer.on('mimo-process-stderr', ({ text }: { text: string }) => {
+        store.addTaskLog(taskId, `[STDERR] ${text}`);
+      });
+
+      // 5. 监听退出
+      const cleanExitUnsub = electron.ipcRenderer.on('mimo-process-exit', ({ code }: { code: number }) => {
+        store.addTaskLog(taskId, `[内核提示] mimo 原生进程已退出，Code: ${code}`);
+        setHarriStatus('idle');
+      });
+
+      return () => {
+        if (cleanStdoutUnsub) cleanStdoutUnsub();
+        if (cleanStderrUnsub) cleanStderrUnsub();
+        if (cleanExitUnsub) cleanExitUnsub();
+        if (idleTimer) clearTimeout(idleTimer);
+      };
+    }
+  }, [sessionId]);
 
   // 映射当前智能体名称
   const getActiveAgentName = () => {
@@ -112,10 +195,9 @@ export default function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [currentMessages]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const message = inputValue.trim();
     if (!message) return;
-    setHarriStatus('processing');
     setInputValue('');
 
     // 追加用户发送的消息气泡
@@ -124,37 +206,53 @@ export default function App() {
       [activeAgentId]: [...(prev[activeAgentId] || []), { role: 'user', content: message }]
     }));
 
-    // 预先追加一条空的 Harri 中枢回应气泡，用于流式打字机追加输出
-    setAgentMessages(prev => {
-      const current = prev[activeAgentId] || [];
-      return {
-        ...prev,
-        [activeAgentId]: [...current, { role: 'harri', content: '' }]
-      };
-    });
-
-    let fullText = '';
-    fetchAgentResponse(message, workspaceFiles, (chunk) => {
-      fullText += chunk;
+    const electron = (window as any).electron;
+    if (electron && electron.ipcRenderer) {
+      // 桌面端 Native CLI 包装模式
+      // 预先追加一条空的 Harri 中枢回应气泡，用于 PTY stdout 流式追加输出
       setAgentMessages(prev => {
         const current = prev[activeAgentId] || [];
-        const updated = [...current];
-        if (updated.length > 0) {
-          // 更新最后一条哈里中枢应答气泡的内容
-          updated[updated.length - 1] = { role: 'harri', content: fullText };
-        }
         return {
           ...prev,
-          [activeAgentId]: updated
+          [activeAgentId]: [...current, { role: 'harri', content: '' }]
         };
       });
-    })
-      .catch((err) => {
-        console.error('LLM Stream Response Error:', err);
-      })
-      .finally(() => {
-        setHarriStatus('idle');
+      setHarriStatus('processing');
+      // 直接写入 stdin 交互流
+      await electron.ipcRenderer.invoke('send-mimo-input', message);
+    } else {
+      // 浏览器 Web 沙箱降级模拟模式
+      setHarriStatus('processing');
+      setAgentMessages(prev => {
+        const current = prev[activeAgentId] || [];
+        return {
+          ...prev,
+          [activeAgentId]: [...current, { role: 'harri', content: '' }]
+        };
       });
+
+      let fullText = '';
+      fetchAgentResponse(message, workspaceFiles, (chunk) => {
+        fullText += chunk;
+        setAgentMessages(prev => {
+          const current = prev[activeAgentId] || [];
+          const updated = [...current];
+          if (updated.length > 0) {
+            updated[updated.length - 1] = { role: 'harri', content: fullText };
+          }
+          return {
+            ...prev,
+            [activeAgentId]: updated
+          };
+        });
+      })
+        .catch((err) => {
+          console.error('LLM Stream Response Error:', err);
+        })
+        .finally(() => {
+          setHarriStatus('idle');
+        });
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

@@ -21,14 +21,26 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   if (!isOpen) return null;
 
-  const handleSave = () => {
-    settings.setSettings({
+  const handleSave = async () => {
+    const newSettings = {
       apiKey,
       apiBaseUrl,
       defaultModel,
       maxTokens: Number(maxTokens),
       defaultWorkspacePath
-    });
+    };
+    
+    settings.setSettings(newSettings);
+
+    const electron = (window as any).electron;
+    if (electron && electron.ipcRenderer) {
+      try {
+        await electron.ipcRenderer.invoke('save-mimo-config', newSettings);
+      } catch (err) {
+        console.error('Failed to save configuration physically:', err);
+      }
+    }
+    
     onClose();
   };
 

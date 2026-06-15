@@ -36,12 +36,16 @@ interface AppState {
   isCallingKernel: boolean;
   kernelCallingStatus: string;
   setIsCallingKernel: (isCalling: boolean, status?: string) => void;
+  sessionId: string | null;
+  setSessionId: (id: string | null) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
   isCallingKernel: false,
   kernelCallingStatus: '',
   setIsCallingKernel: (isCalling, status = '') => set({ isCallingKernel: isCalling, kernelCallingStatus: status }),
+  sessionId: null,
+  setSessionId: (id) => set({ sessionId: id }),
   tasks: [
     {
       id: 'task-01',

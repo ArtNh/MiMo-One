@@ -24,6 +24,69 @@ const sidebarData = {
 export default function Sidebar({ isProcessing, onOpenSettings }: SidebarProps) {
   const activeAgentId = useAppStore((state) => state.activeAgentId);
   const setActiveAgentId = useAppStore((state) => state.setActiveAgentId);
+  const setSessionId = useAppStore((state) => state.setSessionId);
+  const addTask = useAppStore((state) => state.addTask);
+
+  const handleNewProject = async () => {
+    const electron = (window as any).electron;
+    if (electron && electron.ipcRenderer) {
+      // 1. 在 C 栏创建一个 Mimo CLI 原生初始化的任务卡片
+      const taskId = addTask({
+        taskName: '物理 Mimo CLI 项目初始化',
+        status: 'running',
+        agentName: 'Explorer 检索',
+        progress: 10
+      });
+      // 2. 调用主进程执行 mimo init 
+      const res = await electron.ipcRenderer.invoke('mimo-init', { taskId });
+      if (res && res.success) {
+        useAppStore.getState().updateTaskStatus(taskId, 'completed', 100);
+      }
+    } else {
+      // 仿真 Web 环境
+      const taskId = addTask({
+        taskName: '[仿真] Mimo CLI 项目初始化',
+        status: 'running',
+        agentName: 'Explorer 检索',
+        progress: 10
+      });
+      setTimeout(() => {
+        useAppStore.getState().addTaskLog(taskId, '[仿真] [STDOUT] Created project config template in .mimo/config');
+        useAppStore.getState().addTaskLog(taskId, '[仿真] 项目初始化成功！');
+        useAppStore.getState().updateTaskStatus(taskId, 'completed', 100);
+      }, 1000);
+    }
+  };
+
+  const handleNewSession = async () => {
+    const electron = (window as any).electron;
+    if (electron && electron.ipcRenderer) {
+      // 1. 调用主进程执行 mimo session new，截获会话 ID
+      const res = await electron.ipcRenderer.invoke('mimo-new-session');
+      if (res && res.success) {
+        setSessionId(res.sessionId);
+        // 通过添加日志向 C 监控汇报新会话挂载
+        const taskId = addTask({
+          taskName: `挂载 Mimo 会话: ${res.sessionId}`,
+          status: 'completed',
+          agentName: 'Harri 中枢',
+          progress: 100
+        });
+        useAppStore.getState().addTaskLog(taskId, `[内核] 会话 ID ${res.sessionId} 挂载成功！所有 B 栏的 stdin 交互将物理隔离指向该 Session 标识。`);
+      }
+    } else {
+      const simSessionId = `session_sim_${Math.random().toString(36).substr(2, 6)}`;
+      setSessionId(simSessionId);
+      const taskId = addTask({
+        taskName: `[仿真] 挂载 Mimo 会话: ${simSessionId}`,
+        status: 'completed',
+        agentName: 'Harri 中枢',
+        progress: 100
+      });
+      useAppStore.getState().addTaskLog(taskId, `[仿真] 成功创建并隔离仿真会话空间。`);
+    }
+  };
+
   return (
     <aside className="w-full h-full flex flex-col justify-between overflow-hidden text-sm">
       {/* 顶部 Logo 区：强制 shrink-0 锁死不压缩，配置 overflow-visible 防止特效截断 */}
@@ -45,6 +108,22 @@ export default function Sidebar({ isProcessing, onOpenSettings }: SidebarProps) 
 
       {/* 中间：自适应可滚动工作区与智能体列表区域 */}
       <div className="flex-1 overflow-y-auto min-h-0 pr-1 space-y-6">
+        {/* 新增：项目与会话管理 */}
+        <div className="px-2 space-y-2 shrink-0">
+          <button
+            onClick={handleNewProject}
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 border border-slate-200 hover:border-slate-350 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-xs"
+          >
+            <span>＋</span> 新建项目
+          </button>
+          <button
+            onClick={handleNewSession}
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-xs"
+          >
+            <span>＋</span> 新建会话
+          </button>
+        </div>
+
         {/* 工作区段 */}
         <div className="px-2">
           <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">工作区</div>
