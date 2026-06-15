@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const { registerMimoExecutor } = require('./mimoCoreExecutor');
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -17,6 +18,10 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js')
     }
   });
+
+  // 注册 Mimo 内核执行桥接器
+  registerMimoExecutor(ipcMain, win);
+
   // 当页面准备就绪时显示窗口，避免白屏
   win.once('ready-to-show', () => {
     win.show();

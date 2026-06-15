@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { eventBus } from '../../lib/eventBus';
+import { executeMimoCommand } from '../../services/mimoCoreExecutor';
 
 const SubagentMonitor: React.FC = () => {
   const tasks = useAppStore((state) => state.tasks);
@@ -13,15 +14,24 @@ const SubagentMonitor: React.FC = () => {
       let agentName = 'Harri 中枢';
       let taskName = '常规指令分析';
       
+      let command = 'mimo-code';
+      let args: string[] = [];
+
       if (data.type === 'compile') {
         agentName = 'Coder 编译';
         taskName = '编译代码';
+        command = 'npm';
+        args = ['run', 'build'];
       } else if (data.type === 'analyze') {
         agentName = 'Explorer 检索';
         taskName = '分析项目架构';
+        command = 'mimo-code';
+        args = ['analyze', '--workspace', '.'];
       } else if (data.type === 'test') {
         agentName = 'Tester 诊断';
         taskName = '测试用例诊断';
+        command = 'npm';
+        args = ['test'];
       }
 
       const store = useAppStore.getState();
@@ -36,38 +46,39 @@ const SubagentMonitor: React.FC = () => {
 
       // 初始化日志
       store.addTaskLog(taskId, `[系统] 监听到 TASK_TRIGGER 事件，类型: ${data.type}`);
-      store.addTaskLog(taskId, `[系统] 开始执行联动指令: "${data.description}"`);
+      store.addTaskLog(taskId, `[系统] 启动底层原生子进程，参数: ${command} ${args.join(' ')}`);
 
-      let currentProgress = 0;
-      const interval = setInterval(() => {
-        const increment = Math.floor(Math.random() * 11) + 10; // 10% - 20%
-        currentProgress += increment;
-
-        if (currentProgress >= 100) {
-          currentProgress = 100;
-          clearInterval(interval);
-          activeIntervals.current = activeIntervals.current.filter(i => i !== interval);
-          
-          useAppStore.getState().updateTaskStatus(taskId, 'completed', 100);
-          useAppStore.getState().addTaskLog(taskId, `[${agentName}] 任务执行顺利完成，进度 100%`);
-        } else {
-          useAppStore.getState().updateTaskStatus(taskId, 'running', currentProgress);
-          useAppStore.getState().addTaskLog(taskId, `[${agentName}] 任务进行中... 当前进度: ${currentProgress}%`);
-        }
-      }, 800);
-
-      activeIntervals.current.push(interval);
+      // 调用桥接核心执行器
+      executeMimoCommand(taskId, command, args);
     };
 
     eventBus.on('TASK_TRIGGER', handleTaskTrigger);
 
-    // 手动调用一次测试模拟函数，确保即便没有 B 栏触发，加载后 task-02 也会自动累进进度
-    useAppStore.getState().simulateTaskProgress('task-02');
+    // 订阅主进程发送的原生终端日志流与状态变更
+    const electron = (window as any).electron;
+    let unsubscribeLog: (() => void) | undefined;
+    let unsubscribeStatus: (() => void) | undefined;
+
+    if (electron && electron.ipcRenderer && electron.ipcRenderer.on) {
+      unsubscribeLog = electron.ipcRenderer.on('mimo-log', (data: { taskId: string; log: string }) => {
+        useAppStore.getState().addTaskLog(data.taskId, data.log);
+      });
+
+      unsubscribeStatus = electron.ipcRenderer.on('mimo-status', (data: { taskId: string; status: any; exitCode: number | null }) => {
+        const store = useAppStore.getState();
+        if (data.status === 'completed') {
+          store.updateTaskStatus(data.taskId, 'completed', 100);
+        } else if (data.status === 'failed') {
+          store.updateTaskStatus(data.taskId, 'failed');
+          store.addTaskLog(data.taskId, `[系统] 内核进程执行失败，Exit Code: ${data.exitCode}`);
+        }
+      });
+    }
 
     return () => {
       eventBus.off('TASK_TRIGGER', handleTaskTrigger);
-      // 清除所有未完成的定时器，防止组件卸载或热更新引发内存泄漏
-      activeIntervals.current.forEach(clearInterval);
+      if (unsubscribeLog) unsubscribeLog();
+      if (unsubscribeStatus) unsubscribeStatus();
     };
   }, []);
 
@@ -80,7 +91,7 @@ const SubagentMonitor: React.FC = () => {
     setExpandedTasks((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const renderStatusIndicator = (status: 'pending' | 'running' | 'completed') => {
+  const renderStatusIndicator = (status: 'pending' | 'running' | 'completed' | 'failed') => {
     switch (status) {
       case 'completed':
         return (
@@ -96,6 +107,13 @@ const SubagentMonitor: React.FC = () => {
             <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-400"></span>
           </span>
         );
+      case 'failed':
+        return (
+          <span className="flex h-2 w-2 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-300 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-400"></span>
+          </span>
+        );
       case 'pending':
       default:
         return (
@@ -104,10 +122,11 @@ const SubagentMonitor: React.FC = () => {
     }
   };
 
-  const getStatusText = (status: 'pending' | 'running' | 'completed') => {
+  const getStatusText = (status: 'pending' | 'running' | 'completed' | 'failed') => {
     switch (status) {
       case 'completed': return '已完成';
       case 'running': return '执行中';
+      case 'failed': return '已失败';
       case 'pending': return '排队中';
       default: return '等待';
     }

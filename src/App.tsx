@@ -130,20 +130,61 @@ export default function App() {
       eventBus.emit('TASK_TRIGGER', { type: 'test', description: message });
     }
 
-    fetchAgentResponse(message, workspaceFiles)
-      .then((res) => {
-        // 追加回应的消息气泡
+    const isMimoAction = lowerMsg.includes('编译') || lowerMsg.includes('构建') || lowerMsg.includes('生成') || 
+                         lowerMsg.includes('分析') || lowerMsg.includes('检索') || lowerMsg.includes('搜索') || 
+                         lowerMsg.includes('测试') || lowerMsg.includes('诊断') ||
+                         lowerMsg.includes('compile') || lowerMsg.includes('build') || 
+                         lowerMsg.includes('analyze') || lowerMsg.includes('search') ||
+                         lowerMsg.includes('test');
+
+    if (isMimoAction) {
+      // 停止调用 mock LLM 服务，交由本地原生内核进程处理
+      setTimeout(() => {
+        let command = 'mimo-code';
+        let args: string[] = [];
+        if (lowerMsg.includes('编译') || lowerMsg.includes('构建') || lowerMsg.includes('compile') || lowerMsg.includes('build')) {
+          command = 'npm';
+          args = ['run', 'build'];
+        } else if (lowerMsg.includes('分析') || lowerMsg.includes('检索') || lowerMsg.includes('search') || lowerMsg.includes('analyze')) {
+          command = 'mimo-code';
+          args = ['analyze', '--workspace', '.'];
+        } else if (lowerMsg.includes('测试') || lowerMsg.includes('诊断') || lowerMsg.includes('test')) {
+          command = 'npm';
+          args = ['test'];
+        }
+
         setAgentMessages(prev => ({
           ...prev,
-          [activeAgentId]: [...(prev[activeAgentId] || []), { role: 'harri', content: res }]
+          [activeAgentId]: [...(prev[activeAgentId] || []), { 
+            role: 'harri', 
+            content: `[内核接管] 已为您停用模拟大模型数据。本次指令 "${message}" 已由多智能体调度内核转换为本地物理指令参数并派发执行：
+
+\`\`\`bash
+$ ${command} ${args.join(' ')}
+\`\`\`
+
+> **内核调度成功**：子进程已流式唤起。有关进程的流式控制台日志（stdout/stderr）以及退出状态（Exit Code），请在右侧 **C 栏 (Subagent 监控)** 中展开对应卡片进行实时追踪。` 
+          }]
         }));
-      })
-      .catch((err) => {
-        console.error('LLM 请求异常:', err);
-      })
-      .finally(() => {
         setHarriStatus('idle');
-      });
+      }, 600);
+    } else {
+      // 常规闲聊保留 Mock LLM 服务
+      fetchAgentResponse(message, workspaceFiles)
+        .then((res) => {
+          // 追加回应的消息气泡
+          setAgentMessages(prev => ({
+            ...prev,
+            [activeAgentId]: [...(prev[activeAgentId] || []), { role: 'harri', content: res }]
+          }));
+        })
+        .catch((err) => {
+          console.error('LLM 请求异常:', err);
+        })
+        .finally(() => {
+          setHarriStatus('idle');
+        });
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

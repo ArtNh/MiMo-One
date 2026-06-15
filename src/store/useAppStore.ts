@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 export interface AgentTask {
   id: string;
-  status: 'pending' | 'running' | 'completed';
+  status: 'pending' | 'running' | 'completed' | 'failed';
   logs: string[];
   agentName: string;
   taskName: string;
