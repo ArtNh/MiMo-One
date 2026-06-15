@@ -2,6 +2,40 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { eventBus } from '../../lib/eventBus';
 import { executeMimoCommand } from '../../services/mimoCoreExecutor';
+// @ts-ignore
+import Convert from 'ansi-to-html';
+
+const ansiConverter = new Convert({
+  fg: '#94a3b8',
+  bg: 'transparent',
+  newline: false,
+  escapeXML: true
+});
+
+const renderLogLine = (log: string) => {
+  let cleanLog = log;
+  let prefix = '';
+
+  if (log.startsWith('[STDOUT] ')) {
+    cleanLog = log.substring('[STDOUT] '.length);
+    prefix = '<span style="color: #60a5fa; font-weight: bold; margin-right: 4px;">[OUT]</span>';
+  } else if (log.startsWith('[STDERR] ')) {
+    cleanLog = log.substring('[STDERR] '.length);
+    prefix = '<span style="color: #f87171; font-weight: bold; margin-right: 4px;">[ERR]</span>';
+  } else if (log.startsWith('[内核] ')) {
+    cleanLog = log.substring('[内核] '.length);
+    prefix = '<span style="color: #34d399; font-weight: bold; margin-right: 4px;">[CORE]</span>';
+  } else if (log.startsWith('[内核错误] ')) {
+    cleanLog = log.substring('[内核错误] '.length);
+    prefix = '<span style="color: #f87171; font-weight: bold; margin-right: 4px;">[ERR]</span>';
+  } else if (log.startsWith('[系统] ')) {
+    cleanLog = log.substring('[系统] '.length);
+    prefix = '<span style="color: #a78bfa; font-weight: bold; margin-right: 4px;">[SYS]</span>';
+  }
+
+  const parsedBody = ansiConverter.toHtml(cleanLog);
+  return { __html: `${prefix} ${parsedBody}` };
+};
 
 const SubagentMonitor: React.FC = () => {
   const tasks = useAppStore((state) => state.tasks);
@@ -178,7 +212,11 @@ const SubagentMonitor: React.FC = () => {
             {expandedTasks[task.id] && task.logs && task.logs.length > 0 && (
               <div className="mt-2.5 p-2 bg-gray-50/30 rounded text-[10px] font-mono text-gray-400 border border-gray-100/50 max-h-24 overflow-y-auto space-y-1">
                 {task.logs.map((log, logIdx) => (
-                  <div key={logIdx} className="truncate">{`> ${log}`}</div>
+                  <div 
+                    key={logIdx} 
+                    className="truncate leading-relaxed"
+                    dangerouslySetInnerHTML={renderLogLine(log)}
+                  />
                 ))}
               </div>
             )}
