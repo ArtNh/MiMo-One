@@ -12,7 +12,7 @@ export interface AgentTask {
 interface AppState {
   tasks: AgentTask[];
   activeAgentId: string;
-  addTask: (task: Omit<AgentTask, 'id' | 'logs'>) => void;
+  addTask: (task: Omit<AgentTask, 'id' | 'logs'> & { id?: string }) => string;
   updateTaskStatus: (id: string, status: AgentTask['status'], progress?: number) => void;
   addTaskLog: (id: string, log: string) => void;
   setActiveAgentId: (id: string) => void;
@@ -46,14 +46,18 @@ export const useAppStore = create<AppState>((set) => ({
     }
   ],
   activeAgentId: 'agent-harri',
-  addTask: (task) => set((state) => {
-    const newTask: AgentTask = {
-      ...task,
-      id: `task-${Date.now()}`,
-      logs: ['Initializing...']
-    };
-    return { tasks: [newTask, ...state.tasks] };
-  }),
+  addTask: (task) => {
+    const taskId = task.id || `task-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+    set((state) => {
+      const newTask: AgentTask = {
+        ...task,
+        id: taskId,
+        logs: ['Initializing...']
+      };
+      return { tasks: [newTask, ...state.tasks] };
+    });
+    return taskId;
+  },
   updateTaskStatus: (id, status, progress) => set((state) => ({
     tasks: state.tasks.map((t) => 
       t.id === id 

@@ -8,8 +8,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { eventBus } from './lib/eventBus';
 import { useAppStore } from './store/useAppStore';
+import { TaskRunner } from './lib/taskRunner';
 
 export default function App() {
   const [maxMode, setMaxMode] = useState(false);
@@ -20,6 +20,19 @@ export default function App() {
   const [rightPanelWidth, setRightPanelWidth] = useState(320);
   const [isDragging, setIsDragging] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const activeAgentId = useAppStore((state) => state.activeAgentId);
+
+  // 映射当前智能体名称
+  const getActiveAgentName = () => {
+    switch (activeAgentId) {
+      case 'agent-harri': return 'Harri 中枢';
+      case 'agent-coder': return 'Coder 编译';
+      case 'agent-explorer': return 'Explorer 检索';
+      default: return '未知智能体';
+    }
+  };
+  const activeAgentName = getActiveAgentName();
 
   // 监听鼠标移动与释放事件以调节右侧面板大小
   useEffect(() => {
@@ -65,31 +78,26 @@ export default function App() {
   }, []);
 
   const isProcessing = harriStatus === 'processing';
-  const [messages, setMessages] = useState<{ role: 'harri' | 'user'; content: string }[]>([
-    { role: 'harri', content: '你好，我是 Harri，你的多智能体协作中枢。今天有什么我可以帮你的？' }
-  ]);
+  
+  // 按 agentId 隔离的消息队列
+  const [agentMessages, setAgentMessages] = useState<Record<string, { role: 'harri' | 'user'; content: string }[]>>({
+    'agent-harri': [
+      { role: 'harri', content: '你好，我是 Harri，你的多智能体协作中枢。今天有什么我可以帮你的？' }
+    ],
+    'agent-coder': [
+      { role: 'harri', content: '你好，我是 Coder 编译智能体。我可以帮你进行代码编译、构建和依赖检查。' }
+    ],
+    'agent-explorer': [
+      { role: 'harri', content: '你好，我是 Explorer 检索智能体。我可以帮你进行全库索引、文件检索和语义检索。' }
+    ]
+  });
+
+  const currentMessages = agentMessages[activeAgentId] || [];
 
   // 自动滚动到底部
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  // 监听事件总线以动态创建任务并挂载
-  useEffect(() => {
-    const handleTaskStart = (data: { agentName: string; taskName: string }) => {
-      useAppStore.getState().addTask({
-        agentName: data.agentName,
-        taskName: data.taskName,
-        status: 'running',
-        progress: 15
-      });
-    };
-
-    eventBus.on('TASK_START', handleTaskStart);
-    return () => {
-      eventBus.off('TASK_START', handleTaskStart);
-    };
-  }, []);
+  }, [currentMessages]);
 
   const handleSend = () => {
     const message = inputValue.trim();
@@ -98,18 +106,25 @@ export default function App() {
     setInputValue('');
 
     // 追加用户发送的消息气泡
-    setMessages(prev => [...prev, { role: 'user', content: message }]);
+    setAgentMessages(prev => ({
+      ...prev,
+      [activeAgentId]: [...(prev[activeAgentId] || []), { role: 'user', content: message }]
+    }));
 
-    // 触发事件总线，新建子任务挂载
-    eventBus.emit('TASK_START', {
-      agentName: 'Harri 中枢',
-      taskName: message.length > 20 ? `${message.substring(0, 18)}...` : message
-    });
+    // 检测指令关键词并派发任务到执行引擎
+    if (message.includes('编译') || message.includes('构建') || message.includes('生成')) {
+      TaskRunner.runTask('agent-coder', message);
+    } else if (message.includes('分析') || message.includes('检索') || message.includes('搜索') || message.includes('定位')) {
+      TaskRunner.runTask('agent-explorer', message);
+    }
 
     fetchAgentResponse(message)
       .then((res) => {
-        // 追加 Harri 回应的消息气泡
-        setMessages(prev => [...prev, { role: 'harri', content: res }]);
+        // 追加回应的消息气泡
+        setAgentMessages(prev => ({
+          ...prev,
+          [activeAgentId]: [...(prev[activeAgentId] || []), { role: 'harri', content: res }]
+        }));
       })
       .catch((err) => {
         console.error('LLM 请求异常:', err);
@@ -138,8 +153,10 @@ export default function App() {
         {/* 顶部状态栏 */}
         <header className="grid grid-cols-[1fr_auto_1fr] items-center w-full h-12 px-4 border-b border-gray-100">
           {/* 左侧：自适应缩略区 */}
-          <div className="justify-self-start flex items-center min-w-0 overflow-hidden">
-            <div className="text-sm text-gray-500 truncate whitespace-nowrap">当前工作区: {workspaceName}</div>
+          <div className="justify-self-start flex items-center min-w-0 overflow-hidden gap-2">
+            <span className="text-xs text-gray-500 truncate whitespace-nowrap">工作区: {workspaceName}</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shrink-0" />
+            <span className="text-xs text-blue-600 font-semibold truncate whitespace-nowrap">已连接: {activeAgentName}</span>
           </div>
           
           {/* 居中：状态显示胶囊 */}
@@ -161,7 +178,7 @@ export default function App() {
         </header>
         {/* 中间交互区 */}
         <section className="flex-1 overflow-y-auto p-6 space-y-6">
-          {messages.map((msg, index) => (
+          {currentMessages.map((msg, index) => (
             <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div 
                 className={`max-w-[70%] p-3.5 rounded-2xl border shadow-sm text-sm leading-relaxed ${
