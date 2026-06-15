@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useSettingsStore } from '../store/useSettingsStore';
 
 interface SettingsModalProps {
