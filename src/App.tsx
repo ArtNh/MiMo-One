@@ -13,6 +13,7 @@ import { eventBus } from './lib/eventBus';
 import { scanWorkspace } from './services/fileScanner';
 // @ts-ignore
 import ReactDiffViewer from 'react-diff-viewer-continued';
+import SettingsModal from './components/SettingsModal';
 
 export default function App() {
   const [maxMode, setMaxMode] = useState(false);
@@ -21,6 +22,7 @@ export default function App() {
   const [isNapModeActive, setIsNapModeActive] = useState(false);
   const [workspaceName, setWorkspaceName] = useState('未挂载');
   const [rightPanelWidth, setRightPanelWidth] = useState(320);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -203,7 +205,7 @@ $ ${command} ${args.join(' ')}
     <div className={`flex h-screen w-screen overflow-hidden text-sm text-gray-800 ${isDragging ? 'user-select-none' : ''}`}>
       {/* 左侧 A 区 */}
       <aside className="w-56 shrink-0 bg-slate-50 border-r border-slate-200 flex flex-col p-4 h-full justify-between overflow-hidden">
-        <Sidebar isProcessing={isProcessing} />
+        <Sidebar isProcessing={isProcessing} onOpenSettings={() => setIsSettingsOpen(true)} />
       </aside>
 
       {/* 中央 B 区 */}
@@ -423,6 +425,9 @@ $ ${command} ${args.join(' ')}
           <SubagentMonitor />
         </div>
       </aside>
+
+      {/* 系统设置弹窗 */}
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
       {/* 伴我午睡模式全屏遮罩 */}
       {isNapModeActive && (

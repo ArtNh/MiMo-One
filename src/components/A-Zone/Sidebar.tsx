@@ -3,6 +3,7 @@ import { useAppStore } from '../../store/useAppStore';
 
 interface SidebarProps {
   isProcessing: boolean;
+  onOpenSettings: () => void;
 }
 
 const sidebarData = {
@@ -20,7 +21,7 @@ const sidebarData = {
   ]
 };
 
-export default function Sidebar({ isProcessing }: SidebarProps) {
+export default function Sidebar({ isProcessing, onOpenSettings }: SidebarProps) {
   const activeAgentId = useAppStore((state) => state.activeAgentId);
   const setActiveAgentId = useAppStore((state) => state.setActiveAgentId);
   return (
@@ -93,6 +94,7 @@ export default function Sidebar({ isProcessing }: SidebarProps) {
           {sidebarData.settings.map((set) => (
             <div 
               key={set.id}
+              onClick={set.id === 'set-system' ? onOpenSettings : undefined}
               className="flex items-center px-3 py-2 rounded-lg border border-slate-150 bg-white hover:bg-slate-50 hover:border-slate-300 text-xs text-slate-600 transition-all cursor-pointer"
             >
               <span className="truncate whitespace-nowrap">{set.name}</span>

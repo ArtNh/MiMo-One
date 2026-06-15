@@ -10,7 +10,7 @@ const activeProcesses = new Map();
  */
 function registerMimoExecutor(ipcMain, mainWindow) {
   // 运行 Mimo 指令通道
-  ipcMain.handle('run-mimo-command', async (event, { taskId, command, args }) => {
+  ipcMain.handle('run-mimo-command', async (event, { taskId, command, args, extraEnv }) => {
     if (!taskId || !command) {
       return { success: false, error: 'Missing taskId or command' };
     }
@@ -39,7 +39,8 @@ function registerMimoExecutor(ipcMain, mainWindow) {
       // 启动子进程，继承当前环境变量（含 API 密钥等）并允许 Shell 执行以保障兼容性
       const child = spawn(command, args, {
         env: {
-          ...process.env
+          ...process.env,
+          ...extraEnv
         },
         shell: true
       });

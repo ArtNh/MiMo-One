@@ -1,4 +1,5 @@
 import { useAppStore } from '../store/useAppStore';
+import { useSettingsStore } from '../store/useSettingsStore';
 
 /**
  * 检查当前是否处于 Electron 桌面端物理环境
@@ -22,10 +23,22 @@ export const executeMimoCommand = async (
 
   if (isElectron()) {
     try {
+      const settings = useSettingsStore.getState();
+      const extraEnv = {
+        OPENAI_API_KEY: settings.apiKey,
+        ANTHROPIC_API_KEY: settings.apiKey,
+        MIMO_API_KEY: settings.apiKey,
+        API_BASE_URL: settings.apiBaseUrl,
+        MIMO_DEFAULT_MODEL: settings.defaultModel,
+        MIMO_MAX_TOKENS: String(settings.maxTokens),
+        MIMO_WORKSPACE_PATH: settings.defaultWorkspacePath
+      };
+
       const result = await (window as any).electron.ipcRenderer.invoke('run-mimo-command', {
         taskId,
         command,
-        args
+        args,
+        extraEnv
       });
       if (!result.success) {
         store.addTaskLog(taskId, `[内核错误] 唤起失败，原因: ${result.error}`);
