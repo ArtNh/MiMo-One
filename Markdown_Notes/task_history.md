@@ -127,3 +127,7 @@
 
 ### [2026-06-15 18:14:00] 强化 C 栏订阅机制并注入任务状态模拟器
 > 在 useAppStore.ts 中加入 simulateTaskProgress 异步累进仿真 Action。在 SubagentMonitor.tsx 中引入对 tasks 更新的 console.log 副作用监听，并在初始化时手动挂载 task-02 仿真以确保 C 栏的流式重绘功能完美起效。
+
+### [2026-06-15 18:19:00] 加固 EventBus 单例并在 App.tsx 中强化中英文指令模糊匹配
+> 将 eventBus 绑定于全局 window.globalEventBus 上以确保跨引用打包时单例的唯一性；同时对 App.tsx 的消息关键词匹配进行 lowerMsg 预处理，并新增多重中英文模糊同义词，确保指令 100% 触发。
+

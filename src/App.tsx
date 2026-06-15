@@ -112,11 +112,16 @@ export default function App() {
     }));
 
     // 检测指令关键词并触发 TASK_TRIGGER 事件传递给 C 栏
-    if (message.includes('编译') || message.includes('构建') || message.includes('生成')) {
+    console.log('App.tsx handleSend message:', message);
+    const lowerMsg = message.toLowerCase();
+    if (lowerMsg.includes('编译') || lowerMsg.includes('构建') || lowerMsg.includes('生成') || lowerMsg.includes('compile') || lowerMsg.includes('build')) {
+      console.log('App.tsx emitting TASK_TRIGGER with type: compile');
       eventBus.emit('TASK_TRIGGER', { type: 'compile', description: message });
-    } else if (message.includes('分析') || message.includes('检索') || message.includes('搜索') || message.includes('定位')) {
+    } else if (lowerMsg.includes('分析') || lowerMsg.includes('检索') || lowerMsg.includes('搜索') || lowerMsg.includes('定位') || lowerMsg.includes('analyze') || lowerMsg.includes('search')) {
+      console.log('App.tsx emitting TASK_TRIGGER with type: analyze');
       eventBus.emit('TASK_TRIGGER', { type: 'analyze', description: message });
-    } else if (message.includes('测试') || message.includes('诊断')) {
+    } else if (lowerMsg.includes('测试') || lowerMsg.includes('诊断') || lowerMsg.includes('test') || lowerMsg.includes('diagnose')) {
+      console.log('App.tsx emitting TASK_TRIGGER with type: test');
       eventBus.emit('TASK_TRIGGER', { type: 'test', description: message });
     }
 

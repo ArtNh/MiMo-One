@@ -9,6 +9,7 @@ const SubagentMonitor: React.FC = () => {
 
   useEffect(() => {
     const handleTaskTrigger = (data: { type: string; description: string }) => {
+      console.log('SubagentMonitor received TASK_TRIGGER data:', data);
       let agentName = 'Harri 中枢';
       let taskName = '常规指令分析';
       

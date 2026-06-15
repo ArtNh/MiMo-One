@@ -49,3 +49,5 @@
 ### [2026-06-15 18:14:00] 强化 C 栏订阅机制与状态模拟器注入
 > 为彻底验证 C 栏数据流的订阅重绘能力，在 Zustand 状态库中扩展了 `simulateTaskProgress(taskId)` 方法，以 500ms 周期异步累进进度。在 `SubagentMonitor.tsx` 初始化挂载时手动调用此方法测试 `task-02` 的自动推进。同时，在组件中声明了基于 `[tasks]` 改变的 `useEffect` 以在控制台实时打印任务的引用更新，全面验证数据同步链路。
 
+### [2026-06-15 18:19:00] 加固 EventBus 单例并在 App.tsx 中强化中英文指令模糊匹配
+> 针对 B 栏发送指令 C 栏未响应的问题，排查后发现可能是在不同打包路径下导致 eventBus 实例存在多实例化分流。已将 eventBus 绑定于全局 `window.globalEventBus` 上以确保应用内单例的强唯一性。同时，对 `App.tsx` 的消息关键词匹配加入 lowercase 转换，并补充 `compile, build, analyze, test, search` 等英文和多重模糊词，以提供完备的防御性事件路由。
