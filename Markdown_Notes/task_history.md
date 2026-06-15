@@ -116,6 +116,5 @@
 
 > 在 useAppStore.ts 中增设 activeAgentId 全局状态；在 Sidebar.tsx 中实装了点击 Agent 切换点亮状态；在 SubagentMonitor.tsx 中引入 expandedTasks 局部状态，支持点击任务卡片折叠与展开日志，并增加 hover/pointer 悬浮动效。
 
-
-
-
+### [2026-06-15 17:52:10] 本地运行验证与全局代理 CDP 环境诊断
+> 启动并运行 npm run dev:desktop 桌面端物理窗口，验证 Vite 服务器 (::1) 编译启动与 Electron IPC 双向通信完全正常；排查并诊断了系统 TUN 代理劫持 loopback (127.0.0.1) 导致的 IDE 浏览器子代理连接超时异常，编写并归档环境诊断报告。
