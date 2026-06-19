@@ -14,6 +14,10 @@ export default defineConfig({
     // Global test options
     globals: true,
     environment: 'jsdom',
+    // Exclude vendor and node_modules test directories
+    exclude: ['**/src/vendor/**', '**/node_modules/**'],
+    // Include only project test files
+    include: ['src/**/*.test.{ts,tsx}'],
     // Show UI of the browser when running tests (optional)
     // uncomment the following line to see the browser window
     // browser: { provider: playwright({ headless: false }) },
